@@ -38,21 +38,21 @@ const Home = () => {
       id: 1,
       title: 'Keep Your Pets Warm This Winter',
       subtitle: 'Professional winter care services to ensure your furry friends stay comfortable and healthy',
-      image: 'https://i.postimg.cc/5tQw7k8D/winter-coat-dog.jpg',
+      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
       cta: 'Explore Services'
     },
     {
       id: 2,
       title: 'Expert Winter Pet Care',
       subtitle: 'From grooming to emergency care, we have everything your pet needs for winter',
-      image: 'https://i.postimg.cc/6Qb3Y2zK/winter-grooming.jpg',
+      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
       cta: 'Meet Our Experts'
     },
     {
       id: 3,
       title: 'Cozy Indoor Activities',
       subtitle: 'Keep your pets active and entertained when it\'s too cold to go outside',
-      image: 'https://i.postimg.cc/8CjL7Z2V/indoor-play.jpg',
+      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
       cta: 'View Activities'
     }
   ];

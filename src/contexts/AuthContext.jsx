@@ -1,14 +1,4 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  sendPasswordResetEmail,
-  GoogleAuthProvider,
-  signInWithPopup
-} from 'firebase/auth';
 import { auth } from '../config/firebase';
 
 const AuthContext = createContext({});
@@ -23,11 +13,34 @@ export const useAuth = () => {
 
 // Check if Firebase is properly configured
 const isFirebaseConfigured = () => {
-  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-  return apiKey && 
-         apiKey !== 'your_api_key_here' && 
-         apiKey !== 'AIzaSyDEMO' &&
-         apiKey.length > 10;
+  return auth !== null;
+};
+
+// Dynamic import of Firebase auth functions
+const getFirebaseAuth = async () => {
+  if (!isFirebaseConfigured()) return null;
+  
+  const { 
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    updateProfile,
+    sendPasswordResetEmail,
+    GoogleAuthProvider,
+    signInWithPopup
+  } = await import('firebase/auth');
+  
+  return {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    updateProfile,
+    sendPasswordResetEmail,
+    GoogleAuthProvider,
+    signInWithPopup
+  };
 };
 
 export const AuthProvider = ({ children }) => {
@@ -53,10 +66,13 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseAuth = await getFirebaseAuth();
+      if (!firebaseAuth) throw new Error('Firebase not configured');
+      
+      const result = await firebaseAuth.createUserWithEmailAndPassword(auth, email, password);
       
       // Update user profile
-      await updateProfile(result.user, {
+      await firebaseAuth.updateProfile(result.user, {
         displayName: displayName,
         photoURL: photoURL
       });
@@ -77,7 +93,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseAuth = await getFirebaseAuth();
+      if (!firebaseAuth) throw new Error('Firebase not configured');
+      
+      const result = await firebaseAuth.signInWithEmailAndPassword(auth, email, password);
       return result;
     } catch (error) {
       throw error;
@@ -94,8 +113,11 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const firebaseAuth = await getFirebaseAuth();
+      if (!firebaseAuth) throw new Error('Firebase not configured');
+      
+      const provider = new firebaseAuth.GoogleAuthProvider();
+      const result = await firebaseAuth.signInWithPopup(auth, provider);
       return result;
     } catch (error) {
       throw error;
@@ -112,7 +134,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      await signOut(auth);
+      const firebaseAuth = await getFirebaseAuth();
+      if (!firebaseAuth) throw new Error('Firebase not configured');
+      
+      await firebaseAuth.signOut(auth);
     } catch (error) {
       throw error;
     }
@@ -126,7 +151,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      await sendPasswordResetEmail(auth, email);
+      const firebaseAuth = await getFirebaseAuth();
+      if (!firebaseAuth) throw new Error('Firebase not configured');
+      
+      await firebaseAuth.sendPasswordResetEmail(auth, email);
     } catch (error) {
       throw error;
     }
@@ -141,7 +169,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      await updateProfile(auth.currentUser, {
+      const firebaseAuth = await getFirebaseAuth();
+      if (!firebaseAuth) throw new Error('Firebase not configured');
+      
+      await firebaseAuth.updateProfile(auth.currentUser, {
         displayName: displayName,
         photoURL: photoURL
       });
@@ -159,21 +190,32 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL
-        });
-      } else {
-        setUser(null);
+    const setupAuth = async () => {
+      const firebaseAuth = await getFirebaseAuth();
+      if (!firebaseAuth) {
+        setIsDemoMode(true);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    });
 
-    return unsubscribe;
+      const unsubscribe = firebaseAuth.onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setUser({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL
+          });
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      });
+
+      return unsubscribe;
+    };
+
+    setupAuth();
   }, []);
 
   const value = {

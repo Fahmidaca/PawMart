@@ -11,9 +11,9 @@ const DemoBanner = () => {
         <div className="flex items-center justify-center space-x-2">
           <span className="text-2xl">🎭</span>
           <div>
-            <span className="font-semibold">Demo Mode Active</span>
+            <span className="font-semibold">🎮 Demo Mode Active</span>
             <span className="ml-2 text-sm opacity-90">
-              You're testing without real Firebase setup. All features work but no data is saved.
+              Login with any email/password to test. No real account needed!
             </span>
           </div>
         </div>

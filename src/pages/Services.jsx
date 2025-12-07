@@ -9,15 +9,21 @@ const Services = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const { user } = useAuth();
 
-  // Load services from JSON
+  // Load services from API
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const response = await fetch('/data/services.json');
-        const data = await response.json();
-        setServices(data);
+        const response = await fetch('http://localhost:5000/api/services');
+        const result = await response.json();
+        
+        if (result.success) {
+          setServices(result.data);
+        } else {
+          toast.error('Failed to load services');
+        }
       } catch (error) {
-        toast.error('Failed to load services');
+        console.error('Error loading services:', error);
+        toast.error('Failed to load services. Please try again.');
       } finally {
         setLoading(false);
       }

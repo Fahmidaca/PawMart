@@ -36,7 +36,7 @@ const Navbar = () => {
                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                 </svg>
               </div>
-              <span className="ml-3 text-xl font-bold text-gray-900">WarmPaws</span>
+              <span className="ml-3 text-xl font-bold text-gray-900">PawMart</span>
             </Link>
           </div>
 
@@ -54,6 +54,17 @@ const Navbar = () => {
             </Link>
             
             <Link
+              to="/pets-supplies"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                isActive('/pets-supplies') 
+                  ? 'text-warm-600 bg-warm-50' 
+                  : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+              }`}
+            >
+              Pets & Supplies
+            </Link>
+            
+            <Link
               to="/services"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                 isActive('/services') 
@@ -67,14 +78,36 @@ const Navbar = () => {
             {user ? (
               <>
                 <Link
-                  to="/profile"
+                  to="/add-listing"
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    isActive('/profile') 
+                    isActive('/add-listing') 
                       ? 'text-warm-600 bg-warm-50' 
                       : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
                   }`}
                 >
-                  My Profile
+                  Add Listing
+                </Link>
+                
+                <Link
+                  to="/my-listings"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    isActive('/my-listings') 
+                      ? 'text-warm-600 bg-warm-50' 
+                      : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                  }`}
+                >
+                  My Listings
+                </Link>
+                
+                <Link
+                  to="/my-orders"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    isActive('/my-orders') 
+                      ? 'text-warm-600 bg-warm-50' 
+                      : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                  }`}
+                >
+                  My Orders
                 </Link>
                 
                 {/* User Menu */}
@@ -83,19 +116,14 @@ const Navbar = () => {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-warm-600 hover:bg-warm-50 transition-colors duration-200"
                   >
-                    {user.photoURL ? (
-                      <img 
-                        src={user.photoURL} 
-                        alt={user.displayName || 'User'} 
-                        className="h-8 w-8 rounded-full"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 bg-warm-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">
-                          {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    <img 
+                      src={user.photoURL || '/images/default-avatar.svg'} 
+                      alt={user.displayName || 'User'} 
+                      className="h-8 w-8 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.src = '/images/default-avatar.svg';
+                      }}
+                    />
                     <span>{user.displayName || 'User'}</span>
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -108,6 +136,13 @@ const Navbar = () => {
                         <div className="font-medium">{user.displayName || 'User'}</div>
                         <div className="text-gray-500">{user.email}</div>
                       </div>
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setShowUserMenu(false)}
+                      >
+                        Profile
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -170,6 +205,18 @@ const Navbar = () => {
               </Link>
               
               <Link
+                to="/pets-supplies"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                  isActive('/pets-supplies') 
+                    ? 'text-warm-600 bg-warm-50' 
+                    : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                }`}
+              >
+                Pets & Supplies
+              </Link>
+              
+              <Link
                 to="/services"
                 onClick={() => setIsMenuOpen(false)}
                 className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
@@ -184,32 +231,51 @@ const Navbar = () => {
               {user ? (
                 <>
                   <Link
-                    to="/profile"
+                    to="/add-listing"
                     onClick={() => setIsMenuOpen(false)}
                     className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                      isActive('/profile') 
+                      isActive('/add-listing') 
                         ? 'text-warm-600 bg-warm-50' 
                         : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
                     }`}
                   >
-                    My Profile
+                    Add Listing
+                  </Link>
+                  
+                  <Link
+                    to="/my-listings"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                      isActive('/my-listings') 
+                        ? 'text-warm-600 bg-warm-50' 
+                        : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                    }`}
+                  >
+                    My Listings
+                  </Link>
+                  
+                  <Link
+                    to="/my-orders"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                      isActive('/my-orders') 
+                        ? 'text-warm-600 bg-warm-50' 
+                        : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                    }`}
+                  >
+                    My Orders
                   </Link>
                   
                   <div className="px-3 py-2 text-sm text-gray-500">
                     <div className="flex items-center space-x-2">
-                      {user.photoURL ? (
-                        <img 
-                          src={user.photoURL} 
-                          alt={user.displayName || 'User'} 
-                          className="h-6 w-6 rounded-full"
-                        />
-                      ) : (
-                        <div className="h-6 w-6 bg-warm-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-medium">
-                            {user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
+                      <img 
+                        src={user.photoURL || '/images/default-avatar.svg'} 
+                        alt={user.displayName || 'User'} 
+                        className="h-6 w-6 rounded-full object-cover"
+                        onError={(e) => {
+                          e.target.src = '/images/default-avatar.svg';
+                        }}
+                      />
                       <span>{user.displayName || 'User'}</span>
                     </div>
                     <div className="text-xs text-gray-400 mt-1">{user.email}</div>

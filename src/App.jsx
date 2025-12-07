@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import DemoBanner from './components/DemoBanner';
+import LoginTester from './components/LoginTester';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -12,6 +13,11 @@ import ServiceDetails from './pages/ServiceDetails';
 import MyProfile from './pages/MyProfile';
 import Services from './pages/Services';
 import SafetyGuide from './pages/SafetyGuide';
+import AddListing from './pages/AddListing';
+import PetsSupplies from './pages/PetsSupplies';
+import ListingDetails from './pages/ListingDetails';
+import MyListings from './pages/MyListings';
+import MyOrders from './pages/MyOrders';
 import ProtectedRoute from './components/ProtectedRoute';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -42,15 +48,48 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/pets-supplies" element={<PetsSupplies />} />
               <Route path="/services" element={<Services />} />
               <Route path="/safety-guide" element={<SafetyGuide />} />
               
               {/* Protected routes */}
               <Route 
+                path="/listing/:id" 
+                element={
+                  <ProtectedRoute>
+                    <ListingDetails />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/service/:id" 
                 element={
                   <ProtectedRoute>
                     <ServiceDetails />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/add-listing" 
+                element={
+                  <ProtectedRoute>
+                    <AddListing />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/my-listings" 
+                element={
+                  <ProtectedRoute>
+                    <MyListings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/my-orders" 
+                element={
+                  <ProtectedRoute>
+                    <MyOrders />
                   </ProtectedRoute>
                 } 
               />
@@ -66,6 +105,9 @@ function App() {
           </main>
           
           <Footer />
+          
+          {/* Login Tester for debugging */}
+          <LoginTester />
           
           {/* Toast notifications */}
           <Toaster

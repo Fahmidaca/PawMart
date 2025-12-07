@@ -4,7 +4,10 @@ import { getAuth } from 'firebase/auth';
 // Check if Firebase is properly configured
 const isFirebaseConfigured = () => {
   const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-  return apiKey && 
+  // Temporarily disable Firebase for demo mode - change this to 'true' for production
+  const enableFirebase = import.meta.env.VITE_ENABLE_FIREBASE === 'true';
+  
+  return enableFirebase && apiKey && 
          apiKey !== 'your_api_key_here' && 
          apiKey !== 'AIzaSyDEMO' &&
          apiKey.length > 10 &&

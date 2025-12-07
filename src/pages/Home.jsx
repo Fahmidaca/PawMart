@@ -13,7 +13,46 @@ import 'swiper/css/pagination';
 const Home = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState([]);
   const { user } = useAuth();
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('warmpaws-favorites');
+    if (savedFavorites) {
+      setFavorites(JSON.parse(savedFavorites));
+    }
+  }, []);
+
+  // Save favorites to localStorage
+  useEffect(() => {
+    localStorage.setItem('warmpaws-favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  // Toggle favorite service
+  const toggleFavorite = (serviceId) => {
+    if (!user) {
+      toast.error('Please login to add favorites');
+      return;
+    }
+
+    setFavorites(prev => {
+      const isFavorite = prev.includes(serviceId);
+      const newFavorites = isFavorite 
+        ? prev.filter(id => id !== serviceId)
+        : [...prev, serviceId];
+      
+      toast.success(
+        isFavorite ? 'Removed from favorites' : 'Added to favorites',
+        { duration: 2000 }
+      );
+      
+      return newFavorites;
+    });
+  };
+
+  // Check if service is favorite
+  const isFavorite = (serviceId) => favorites.includes(serviceId);
 
   // Load services from JSON
   useEffect(() => {
@@ -32,42 +71,28 @@ const Home = () => {
     loadServices();
   }, []);
 
-  // Hero slider data
+  // Hero slider data for PawMart
   const heroSlides = [
     {
       id: 1,
-      title: 'Keep Your Pets Warm This Winter',
-      subtitle: 'Professional winter care services to ensure your furry friends stay comfortable and healthy',
-      image: 'https://images.unsplash.com/photo-1544568100-847a948585b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      cta: 'Explore Services'
+      title: 'Find Your Furry Friend Today!',
+      subtitle: 'Adopt loving pets or discover amazing pet products on PawMart',
+      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      cta: 'Browse Pets & Supplies'
     },
     {
       id: 2,
-      title: 'Expert Winter Pet Care',
-      subtitle: 'From grooming to emergency care, we have everything your pet needs for winter',
-      image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      cta: 'Meet Our Experts'
+      title: 'Adopt, Don\'t Shop — Give a Pet a Home',
+      subtitle: 'Every pet deserves love and care. Find your perfect companion today',
+      image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+      cta: 'Adopt Now'
     },
     {
       id: 3,
-      title: 'Cozy Indoor Activities',
-      subtitle: 'Keep your pets active and entertained when it\'s too cold to go outside',
+      title: 'Because Every Pet Deserves Love and Care',
+      subtitle: 'Connect with local pet owners and trusted sellers for all your pet needs',
       image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      cta: 'View Activities'
-    },
-    {
-      id: 4,
-      title: 'Professional Grooming Services',
-      subtitle: 'Winter-specific grooming with paw protection and moisturizing treatments',
-      image: 'https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      cta: 'Book Grooming'
-    },
-    {
-      id: 5,
-      title: 'Emergency Pet Care',
-      subtitle: '24/7 emergency services for winter-related pet health concerns',
-      image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      cta: 'Emergency Care'
+      cta: 'Explore Now'
     }
   ];
 
@@ -220,12 +245,38 @@ const Home = () => {
                 data-aos="fade-up"
                 data-aos-delay={index * 100}
               >
-                <div className="aspect-w-16 aspect-h-9 mb-4">
+                <div className="aspect-w-16 aspect-h-9 mb-4 relative">
                   <img 
                     src={service.image} 
                     alt={service.serviceName}
                     className="w-full h-48 object-cover rounded-lg"
                   />
+                  {/* Favorite Button */}
+                  <button
+                    onClick={() => toggleFavorite(service.serviceId)}
+                    className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${
+                      isFavorite(service.serviceId)
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-white text-gray-400 hover:text-red-500 hover:bg-red-50'
+                    }`}
+                    title={isFavorite(service.serviceId) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <svg 
+                      className={`h-5 w-5 ${
+                        isFavorite(service.serviceId) ? 'fill-current' : ''
+                      }`} 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                      />
+                    </svg>
+                  </button>
                 </div>
                 
                 <div className="flex items-center justify-between mb-2">

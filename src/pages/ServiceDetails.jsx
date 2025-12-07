@@ -18,20 +18,20 @@ const ServiceDetails = () => {
   useEffect(() => {
     const loadService = async () => {
       try {
-        const response = await fetch('/data/services.json');
-        const services = await response.json();
-        const foundService = services.find(s => s.serviceId === parseInt(id));
+        const response = await fetch(`http://localhost:5000/api/services/${id}`);
+        const result = await response.json();
         
-        if (!foundService) {
+        if (result.success) {
+          setService(result.data);
+        } else {
           toast.error('Service not found');
-          navigate('/');
+          navigate('/services');
           return;
         }
-        
-        setService(foundService);
       } catch (error) {
+        console.error('Error loading service:', error);
         toast.error('Failed to load service details');
-        navigate('/');
+        navigate('/services');
       } finally {
         setLoading(false);
       }
@@ -51,18 +51,43 @@ const ServiceDetails = () => {
     e.preventDefault();
     setSubmitting(true);
 
-    // Simulate booking process
+    // Create order via API
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Service booked successfully! You will receive a confirmation email shortly.');
-      
-      // Clear the form
-      setBookingForm({
-        name: user?.displayName || '',
-        email: user?.email || ''
+      const orderData = {
+        buyerName: bookingForm.name,
+        email: bookingForm.email,
+        productId: service.serviceId.toString(),
+        productName: service.serviceName,
+        price: service.price,
+        quantity: 1,
+        address: 'TBD', // You can add address field to the form
+        phone: 'TBD', // You can add phone field to the form
+        userId: user?.uid || null
+      };
+
+      const response = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
       });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Service booked successfully! You will receive a confirmation email shortly.');
+        
+        // Clear the form
+        setBookingForm({
+          name: user?.displayName || '',
+          email: user?.email || ''
+        });
+      } else {
+        toast.error('Booking failed. Please try again.');
+      }
     } catch (error) {
+      console.error('Booking error:', error);
       toast.error('Booking failed. Please try again.');
     } finally {
       setSubmitting(false);

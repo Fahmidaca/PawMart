@@ -1,0 +1,21 @@
+{
+  "name": "warmpaws-database",
+  "version": "1.0.0",
+  "description": "Database models and scripts for WarmPaws application",
+  "main": "config/database.js",
+  "type": "module",
+  "scripts": {
+    "seed": "node scripts/seedDatabase.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "mongoose": "^8.0.3",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "keywords": ["database", "mongodb", "mongoose", "models"],
+  "author": "WarmPaws Team",
+  "license": "MIT"
+}

@@ -12,6 +12,9 @@ const Signup = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [photoMode, setPhotoMode] = useState('url'); // 'url' or 'upload'
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -20,6 +23,46 @@ const Signup = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handlePhotoModeChange = (mode) => {
+    setPhotoMode(mode);
+    setSelectedFile(null);
+    setPhotoPreview(null);
+    setFormData({ ...formData, photoURL: '' });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+
+      setSelectedFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePhotoURLChange = (e) => {
+    setFormData({
+      ...formData,
+      photoURL: e.target.value
+    });
+    setPhotoPreview(null);
+    setSelectedFile(null);
   };
 
   const validatePassword = (password) => {
@@ -49,7 +92,14 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      await register(formData.email, formData.password, formData.name, formData.photoURL);
+      let finalPhotoURL = formData.photoURL;
+      
+      // If file upload mode and file is selected, convert to data URL
+      if (photoMode === 'upload' && selectedFile) {
+        finalPhotoURL = photoPreview;
+      }
+
+      await register(formData.email, formData.password, formData.name, finalPhotoURL);
       toast.success('Account created successfully!');
       navigate('/');
     } catch (error) {
@@ -123,19 +173,106 @@ const Signup = () => {
                 />
               </div>
               
-              <div>
-                <label htmlFor="photoURL" className="sr-only">
-                  Photo URL (Optional)
+              {/* Photo Selection Section */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Profile Photo (Optional)
                 </label>
-                <input
-                  id="photoURL"
-                  name="photoURL"
-                  type="url"
-                  value={formData.photoURL}
-                  onChange={handleInputChange}
-                  className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-warm-500 focus:border-warm-500 focus:z-10 sm:text-sm"
-                  placeholder="Photo URL (Optional)"
-                />
+                
+                {/* Photo Mode Toggle */}
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <button
+                    type="button"
+                    onClick={() => handlePhotoModeChange('url')}
+                    className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+                      photoMode === 'url'
+                        ? 'bg-white text-warm-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    URL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePhotoModeChange('upload')}
+                    className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+                      photoMode === 'upload'
+                        ? 'bg-white text-warm-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    Upload
+                  </button>
+                </div>
+
+                {photoMode === 'url' ? (
+                  <div>
+                    <input
+                      id="photoURL"
+                      name="photoURL"
+                      type="url"
+                      value={formData.photoURL}
+                      onChange={handlePhotoURLChange}
+                      className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-warm-500 focus:border-warm-500 focus:z-10 sm:text-sm"
+                      placeholder="Photo URL (Optional)"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <svg className="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.5 6.5c1.495 0 2.831.456 3.916 1.203A9.802 9.802 0 0 1 4.5 6.5Z"/>
+                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 4.5v3a3 3 0 1 1-6 0v-3M12 1v3"/>
+                          </svg>
+                          <p className="mb-2 text-sm text-gray-500">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                        </div>
+                        <input
+                          id="photo-upload"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                        />
+                      </label>
+                    </div>
+                    
+                    {/* Photo Preview */}
+                    {photoPreview && (
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900 font-medium">
+                            {selectedFile?.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {selectedFile && (selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setPhotoPreview(null);
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
               <div className="relative">

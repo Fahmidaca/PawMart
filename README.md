@@ -1,327 +1,283 @@
-# WarmPaws - Pet Care in Winter 🐾❄️
+# 🐾 PawMart - Pet Adoption & Supply Portal
 
-A cozy winter companion platform designed for pet owners to ensure their furry friends stay warm, safe, and healthy during the cold season. Users can explore local pet care services, winter pet clothing, grooming options, and expert tips — all in one friendly interface.
+A comprehensive full-stack pet adoption and supply marketplace built with React, Node.js, and Firebase.
 
-## 🌟 Live Demo
+## 🚀 Live Demo
 
-**Live URL:** [WarmPaws - Pet Care Platform](https://your-netlify-url.netlify.app)
+- **Frontend**: [https://poetic-blancmange-cfdeec.netlify.app](https://poetic-blancmange-cfdeec.netlify.app)
+- **Backend**: Coming Soon
 
-## 🎯 Project Purpose
+## 📋 Features
 
-WarmPaws addresses the unique challenges of winter pet care by providing:
+### 🏠 Pet Adoption Portal
+- Browse pets available for adoption
+- Advanced search and filtering
+- Pet profiles with detailed information
+- Adoption application system
 
-- Comprehensive winter pet care services
-- Expert advice and safety tips
-- Emergency care information
-- Easy booking system
-- User-friendly interface designed for pet parents
+### 🛒 Supply Marketplace
+- Pet food and nutrition products
+- Accessories (toys, collars, leashes)
+- Care products (grooming, health)
+- Seller marketplace
 
-## ✨ Key Features
+### 🏥 Health & Medical
+- Pet health dashboard
+- Vaccination scheduling
+- Medical consultation booking
+- Health record tracking
 
-### 🔐 Authentication System
-- **Firebase Authentication** with email/password
-- **Google OAuth** integration
-- Password validation (uppercase, lowercase, 6+ characters)
-- Password visibility toggle
-- Forgot password functionality with Gmail redirect
+### 👥 Community
+- Connect with pet owners
+- Success stories
+- Expert advice
+- Community forums
 
-### 🏠 Home Page
-- **Hero Slider** showcasing winter pet care with Swiper.js
-- **Popular Services** section displaying JSON data
-- **Winter Care Tips** with helpful advice
-- **Expert Vets** section featuring our team
-- **24/7 Emergency Care** section highlighting urgent services
-
-### 🛠️ Service Management
-- **Service Details** page (protected route)
-- **Booking System** with form validation
-- **Real-time availability** tracking
-- Service provider information
-- Related services suggestions
-
-### 👤 User Profile
-- **Profile management** with photo upload
-- **Update functionality** using Firebase updateProfile()
-- User statistics dashboard
-- Activity tracking
-- Account settings
-
-### 🎨 Design & UX
-- **Minimalist & Modern** design
-- **Fully Responsive** (mobile, tablet, desktop)
-- **AOS Animations** for smooth interactions
-- **Custom Color Scheme** with warm winter theme
-- **Toast Notifications** for user feedback
-
-### 🗂️ Additional Features
-- **Protected Routes** for authenticated pages
-- **Environment Variables** for Firebase configuration
-- **JSON-based** service data management
-- **SEO-friendly** routing with React Router
-- **Performance Optimized** with lazy loading
-
-## 🛠️ Technology Stack
+## 🛠️ Tech Stack
 
 ### Frontend
-- **React 18** - Modern React with hooks
+- **React 19** - Modern React with hooks
 - **Vite** - Fast build tool and dev server
-- **React Router** - Client-side routing
 - **Tailwind CSS** - Utility-first CSS framework
 - **DaisyUI** - Component library for Tailwind
-- **Swiper.js** - Modern slider component
-- **AOS** - Animate On Scroll library
+- **Firebase Auth** - Authentication service
+- **Swiper** - Image sliders and carousels
+- **AOS** - Scroll animations
+- **Framer Motion** - Advanced animations
 
-### Backend & Services
-- **Firebase Authentication** - User authentication
-- **Firebase Firestore** - Database (optional)
-- **Firebase Hosting** - Deployment (optional)
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web application framework
+- **Firebase Admin** - Firebase Admin SDK
+- **MongoDB** - NoSQL database
+- **Nodemailer** - Email service
+- **Twilio** - SMS notifications
 
-### Development Tools
-- **React Hot Toast** - Toast notifications
-- **React Firebase Hooks** - Firebase integration
-- **PostCSS** - CSS processing
-- **ESLint** - Code linting
-
-## 📦 NPM Packages Used
-
-### Required Packages
-- `firebase` - Firebase SDK for authentication
-- `react-router-dom` - Client-side routing
-- `swiper` - Modern slider for hero section
-- `aos` - Animate On Scroll library
-- `react-hot-toast` - Toast notifications
-- `daisyui` - Tailwind CSS component library
-- `@tailwindcss/typography` - Typography plugin
-
-### Additional Dependencies
-- `react-firebase-hooks` - Firebase React hooks
-- `@vitejs/plugin-react` - React plugin for Vite
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- Firebase account
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/warmpaws-pet-care.git
-   cd warmpaws-pet-care
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up Firebase Configuration**
-   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Authentication and Email/Password provider
-   - Enable Google Sign-in provider
-   - Create a `.env` file in the root directory:
-
-   ```env
-   VITE_FIREBASE_API_KEY=your_api_key_here
-   VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain_here
-   VITE_FIREBASE_PROJECT_ID=your_project_id_here
-   VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id_here
-   VITE_FIREBASE_APP_ID=your_app_id_here
-   ```
-
-4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   Navigate to `http://localhost:5173`
-
-### Build for Production
-
-```bash
-npm run build
-npm run preview
-```
+### Database
+- **Firebase Firestore** - NoSQL document database
+- **MongoDB** - Alternative database option
+- **Firebase Storage** - File storage
 
 ## 📁 Project Structure
 
 ```
-warmpaws/
-├── public/
-│   ├── data/
-│   │   └── services.json          # Service data
-│   └── index.html
-├── src/
-│   ├── components/
-│   │   ├── Footer.jsx             # Footer component
-│   │   ├── Navbar.jsx             # Navigation component
-│   │   └── ProtectedRoute.jsx     # Route protection
-│   ├── contexts/
-│   │   └── AuthContext.jsx        # Authentication context
-│   ├── pages/
-│   │   ├── ForgotPassword.jsx     # Password reset
-│   │   ├── Home.jsx               # Main landing page
-│   │   ├── Login.jsx              # User login
-│   │   ├── MyProfile.jsx          # User profile
-│   │   ├── ServiceDetails.jsx     # Service booking
-│   │   └── Signup.jsx             # User registration
-│   ├── config/
-│   │   └── firebase.js            # Firebase configuration
-│   ├── App.jsx                    # Main app component
-│   ├── index.css                  # Global styles
-│   └── main.jsx                   # Entry point
-├── .env                           # Environment variables
-├── .gitignore
-├── index.html
-├── package.json
-├── tailwind.config.js
-├── vite.config.js
-└── README.md
+PawMart/
+├── 📁 frontend/                 # React Frontend Application
+│   ├── 📁 src/                  # Source code
+│   ├── 📁 public/               # Static assets
+│   ├── package.json             # Frontend dependencies
+│   └── vite.config.js          # Vite configuration
+│
+├── 📁 warmpaws-server/          # Express.js Backend API
+│   ├── 📁 routes/              # API routes
+│   ├── 📁 middleware/          # Authentication & authorization
+│   ├── 📁 services/            # Business logic services
+│   ├── 📁 database/            # Database configuration
+│   ├── server.js               # Main server file
+│   └── package.json            # Backend dependencies
+│
+├── 📁 warmpaws-database/        # Database Schema & Scripts
+│   ├── 📁 models/              # Database models
+│   ├── 📁 scripts/             # Database initialization scripts
+│   ├── 📁 config/              # Database configuration
+│   └── README.md               # Database documentation
+│
+└── 📄 README.md                # Main project documentation
 ```
 
-## 🎨 Design Features
+## 🚀 Quick Start
 
-### Color Scheme
-- **Primary:** Warm Orange (#f1761a)
-- **Secondary:** Warm Light (#f49537)
-- **Accent:** Yellow (#fbbf24)
-- **Background:** Warm Gradient
-- **Text:** Gray scale for readability
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Git
 
-### Animations
-- **AOS Library** for scroll animations
-- **Hover Effects** on cards and buttons
-- **Loading States** with spinners
-- **Smooth Transitions** throughout the app
+### Frontend Setup
 
-### Responsive Design
-- **Mobile First** approach
-- **Breakpoints:** sm, md, lg, xl
-- **Touch-Friendly** interface
-- **Optimized Images** for different screen sizes
+1. **Clone the repository**
+```bash
+git clone https://github.com/Fahmidaca/PawMart.git
+cd PawMart
+```
 
-## 🔐 Authentication Features
+2. **Install dependencies**
+```bash
+npm install
+```
 
-### Password Validation
-- ✅ At least one uppercase letter
-- ✅ At least one lowercase letter
-- ✅ Minimum 6 characters
-- 🔒 Password visibility toggle
+3. **Set up environment variables**
+```bash
+cp .env.example .env.local
+```
 
-### Social Authentication
-- 🔗 Google OAuth integration
-- 📧 Email verification ready
-- 🔄 Automatic redirect after login
+4. **Configure Firebase**
+Edit `.env.local` with your Firebase credentials:
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abc123
+```
 
-### Security
-- 🔒 Protected routes
-- 🎯 Route-based access control
-- 📱 Session management
-- 🚪 Auto-logout on errors
+5. **Start development server**
+```bash
+npm run dev
+```
 
-## 📱 Responsive Breakpoints
+6. **Open browser**
+Visit `http://localhost:5173`
 
-- **Mobile:** 320px - 768px
-- **Tablet:** 768px - 1024px
-- **Desktop:** 1024px+
+### Backend Setup
+
+1. **Navigate to backend directory**
+```bash
+cd warmpaws-server
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Set up environment variables**
+```bash
+cp .env.example .env
+```
+
+4. **Configure backend**
+Edit `.env` with your Firebase Admin credentials:
+```env
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_PRIVATE_KEY=your_private_key
+MONGODB_URI=mongodb://localhost:27017/pawmart
+JWT_SECRET=your_jwt_secret
+```
+
+5. **Start backend server**
+```bash
+npm run dev
+```
+
+## 🔧 Development
+
+### Frontend Commands
+```bash
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run preview    # Preview production build
+npm run lint       # Run ESLint
+```
+
+### Backend Commands
+```bash
+npm run dev        # Start development server
+npm start          # Start production server
+npm run test       # Run tests
+```
+
+## 🗄️ Database Setup
+
+### Firebase Firestore
+1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+2. Enable Firestore Database
+3. Set up security rules
+4. Configure authentication providers
+
+### MongoDB (Optional)
+1. Install MongoDB locally or use MongoDB Atlas
+2. Create a database named `pawmart`
+3. Configure connection string in backend `.env`
 
 ## 🚀 Deployment
 
-### Netlify Deployment
-1. **Build the project**
-   ```bash
-   npm run build
-   ```
+### Frontend Deployment (Netlify)
+1. Connect your GitHub repository to Netlify
+2. Set build command: `npm run build`
+3. Set publish directory: `dist`
+4. Configure environment variables in Netlify dashboard
 
-2. **Deploy to Netlify**
-   - Connect your GitHub repository
-   - Set build command: `npm run build`
-   - Set publish directory: `dist`
-   - Add environment variables in Netlify dashboard
+### Backend Deployment Options
+- **Heroku**: Connect repository and deploy
+- **Railway**: Connect repository and deploy
+- **Render**: Connect repository and deploy
+- **DigitalOcean**: Use App Platform
 
-3. **Configure Firebase**
-   - Add your Netlify domain to Firebase authorized domains
-   - Update Firebase authentication settings
+## 🔐 Environment Variables
 
-### Alternative Hosting
-- **Vercel** - Zero-config deployment
-- **Surge.sh** - Simple static hosting
-- **GitHub Pages** - Free hosting for public repos
+### Frontend (.env.local)
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abc123
+```
 
-## 🔧 Environment Setup
+### Backend (.env)
+```env
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_PRIVATE_KEY=your_private_key
+MONGODB_URI=mongodb://localhost:27017/pawmart
+JWT_SECRET=your_jwt_secret
+STRIPE_SECRET_KEY=your_stripe_secret
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+```
 
-### Firebase Configuration
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project
-3. Enable Authentication
-4. Add web app and copy config
-5. Update `.env` file with Firebase values
+## 📊 Features Implemented
 
-### Development Environment
-- **Node.js:** v18+ recommended
-- **Package Manager:** npm or yarn
-- **Editor:** VS Code (recommended)
-- **Browser:** Chrome, Firefox, Safari, Edge
+### ✅ Core Features
+- [x] User Authentication (Email/Password)
+- [x] Pet Adoption Portal
+- [x] Supply Marketplace
+- [x] Health Dashboard
+- [x] Medical Consultation
+- [x] Community Features
+- [x] Responsive Design
+- [x] Multi-language Support (EN/BN)
+- [x] Dark/Light Theme
+
+### 🔄 In Progress
+- [ ] Google Sign-In (requires domain authorization)
+- [ ] Real-time Chat
+- [ ] Video Consultations
+- [ ] Payment Integration
+
+### 📅 Planned
+- [ ] Mobile App (React Native)
+- [ ] Admin Dashboard
+- [ ] Advanced Analytics
+- [ ] Social Media Integration
 
 ## 🤝 Contributing
 
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/AmazingFeature
-   ```
-3. **Commit your changes**
-   ```bash
-   git commit -m 'Add some AmazingFeature'
-   ```
-4. **Push to the branch**
-   ```bash
-   git push origin feature/AmazingFeature
-   ```
-5. **Open a Pull Request**
-
-## 📋 Assignment Requirements Checklist
-
-- ✅ **GitHub Commits:** 10+ meaningful commits with descriptive messages
-- ✅ **README.md:** Comprehensive project documentation
-- ✅ **Responsiveness:** Fully responsive on all devices
-- ✅ **Environment Variables:** Firebase config secured
-- ✅ **Unique Design:** Minimalist and modern with subtle animations
-- ✅ **SPA Behavior:** No errors on route reloads
-- ✅ **Hosting Ready:** Configured for Netlify deployment
-- ✅ **Authentication:** Complete login/signup system
-- ✅ **Protected Routes:** Service details and profile pages
-- ✅ **JSON Data:** 8+ pet care services
-- ✅ **Additional Features:** Emergency care section
-- ✅ **Toast Notifications:** Success/error feedback
-- ✅ **Password Validation:** Comprehensive validation
-- ✅ **Profile Updates:** Firebase updateProfile() integration
-
-## 📞 Support
-
-For support and questions:
-- 📧 Email: info@warmpaws.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/warmpaws-pet-care/issues)
-- 📖 Documentation: [Wiki](https://github.com/yourusername/warmpaws-pet-care/wiki)
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 👥 Team
+
+- **Frontend Developer**: React application and UI/UX
+- **Backend Developer**: API development and database management
+- **DevOps Engineer**: Deployment and infrastructure
+- **UI/UX Designer**: User interface and experience design
+
+## 📞 Support
+
+For support, email support@pawmart.com or create an issue on GitHub.
+
 ## 🙏 Acknowledgments
 
-- **Firebase** for authentication services
-- **Tailwind CSS** for styling framework
-- **React Team** for the amazing framework
-- **Contributors** who helped improve this project
-- **Pet Lovers** who inspired this application
-
----
-
-Made with ❤️ for pet parents everywhere 🐾
-
-**"Keeping your furry friends warm, one service at a time"**
+- Firebase for authentication and database services
+- Netlify for frontend hosting
+- Tailwind CSS for styling framework
+- React community for amazing libraries and tools

@@ -1,4 +1,6 @@
 import express from 'express';
+import { verifyFirebaseToken } from '../middleware/firebaseAuth.js';
+import { checkOwnership, setResource } from '../middleware/ownership.js';
 
 const router = express.Router();
 
@@ -144,12 +146,12 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// POST /api/listings - Create new listing
-router.post('/', (req, res) => {
+// POST /api/listings - Create new listing (Protected)
+router.post('/', verifyFirebaseToken, (req, res) => {
   try {
-    const { name, category, price, location, description, image, email, ownerName } = req.body;
+    const { name, category, price, location, description, image } = req.body;
     
-    if (!name || !category || !location || !description || !email) {
+    if (!name || !category || !location || !description) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -166,9 +168,10 @@ router.post('/', (req, res) => {
       location,
       description,
       image: image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email,
+      email: req.user.email, // Use authenticated user's email
+      ownerName: req.user.name || 'Unknown Owner', // Use authenticated user's name
       date: new Date().toISOString().split('T')[0],
-      ownerName: ownerName || 'Unknown Owner'
+      ownerId: req.user.uid // Add Firebase UID for ownership verification
     };
     
     mockListings[newId] = newListing;
@@ -187,62 +190,82 @@ router.post('/', (req, res) => {
   }
 });
 
-// PUT /api/listings/:id - Update listing
-router.put('/:id', (req, res) => {
-  try {
-    const listing = mockListings[req.params.id];
-    
-    if (!listing) {
-      return res.status(404).json({
+// PUT /api/listings/:id - Update listing (Protected + Owner check)
+router.put('/:id', 
+  verifyFirebaseToken,
+  setResource((req) => mockListings[req.params.id]),
+  checkOwnership('email'),
+  (req, res) => {
+    try {
+      const listing = req.resource;
+      
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          message: 'Listing not found'
+        });
+      }
+      
+      // Update listing (partial update) but preserve owner fields
+      const { email, ownerName, ownerId, id, ...updateData } = req.body;
+      const updatedListing = { 
+        ...listing, 
+        ...updateData,
+        // Preserve original owner information
+        email: listing.email,
+        ownerName: listing.ownerName,
+        ownerId: listing.ownerId,
+        id: listing.id
+      };
+      
+      mockListings[req.params.id] = updatedListing;
+      
+      res.json({
+        success: true,
+        data: updatedListing,
+        message: 'Listing updated successfully'
+      });
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Listing not found'
+        message: 'Failed to update listing',
+        error: error.message
       });
     }
-    
-    // Update listing (partial update)
-    const updatedListing = { ...listing, ...req.body };
-    mockListings[req.params.id] = updatedListing;
-    
-    res.json({
-      success: true,
-      data: updatedListing,
-      message: 'Listing updated successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update listing',
-      error: error.message
-    });
   }
-});
+);
 
-// DELETE /api/listings/:id - Delete listing
-router.delete('/:id', (req, res) => {
-  try {
-    const listing = mockListings[req.params.id];
-    
-    if (!listing) {
-      return res.status(404).json({
+// DELETE /api/listings/:id - Delete listing (Protected + Owner check)
+router.delete('/:id', 
+  verifyFirebaseToken,
+  setResource((req) => mockListings[req.params.id]),
+  checkOwnership('email'),
+  (req, res) => {
+    try {
+      const listing = req.resource;
+      
+      if (!listing) {
+        return res.status(404).json({
+          success: false,
+          message: 'Listing not found'
+        });
+      }
+      
+      delete mockListings[req.params.id];
+      
+      res.json({
+        success: true,
+        data: listing,
+        message: 'Listing deleted successfully'
+      });
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: 'Listing not found'
+        message: 'Failed to delete listing',
+        error: error.message
       });
     }
-    
-    delete mockListings[req.params.id];
-    
-    res.json({
-      success: true,
-      data: listing,
-      message: 'Listing deleted successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete listing',
-      error: error.message
-    });
   }
-});
+);
 
 export default router;

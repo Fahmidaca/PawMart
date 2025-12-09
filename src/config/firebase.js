@@ -1,42 +1,33 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getAnalytics } from 'firebase/analytics';
 
-// Check if Firebase is properly configured
-const isFirebaseConfigured = () => {
-  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-  // Temporarily disable Firebase for demo mode - change this to 'true' for production
-  const enableFirebase = import.meta.env.VITE_ENABLE_FIREBASE === 'true';
-  
-  return enableFirebase && apiKey && 
-         apiKey !== 'your_api_key_here' && 
-         apiKey !== 'AIzaSyDEMO' &&
-         apiKey.length > 10 &&
-         !apiKey.includes('demo');
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyD8KLW2lzK7CRiLchsDyUt3oxoeqrDFIvs",
+  authDomain: "warmpaws-app-fa44d.firebaseapp.com",
+  projectId: "warmpaws-app-fa44d",
+  storageBucket: "warmpaws-app-fa44d.firebasestorage.app",
+  messagingSenderId: "658484214322",
+  appId: "1:658484214322:web:df5e311b9f57d840f29a2b",
+  measurementId: "G-16WVG57NHD"
 };
 
-// Export auth - will be null in demo mode
-let auth = null;
+// Initialize Firebase
+let app, auth, db, analytics;
 
-// Initialize Firebase only if properly configured
-if (isFirebaseConfigured()) {
-  try {
-    const firebaseConfig = {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.VITE_FIREBASE_APP_ID
-    };
-    
-    const app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-  } catch (error) {
-    console.warn('Firebase initialization failed, running in demo mode:', error);
-    auth = null;
-  }
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  analytics = getAnalytics(app);
+  console.log('Firebase initialized successfully');
+} catch (error) {
+  console.error('Firebase initialization failed:', error);
+  throw error;
 }
 
-// Export auth (will be null in demo mode)
-export { auth };
-export default null;
+// Export Firebase services
+export { auth, db, analytics };
+export default app;

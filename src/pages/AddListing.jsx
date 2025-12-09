@@ -55,36 +55,49 @@ const AddListing = () => {
     setLoading(true);
     
     try {
-      // Here you would typically save to MongoDB
-      // For now, we'll simulate the API call
+      // Save to MongoDB via API
       const listingData = {
-        ...formData,
+        name: formData.name,
+        category: formData.category,
+        price: parseFloat(formData.price) || 0,
+        location: formData.location,
+        description: formData.description,
+        image: formData.image || 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+        date: formData.date || new Date().toISOString().split('T')[0],
         email: user.email,
-        createdAt: new Date().toISOString(),
         userId: user.uid
       };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Listing data:', listingData);
-      toast.success('Listing added successfully!');
-      
-      // Reset form
-      setFormData({
-        name: '',
-        category: '',
-        price: '',
-        location: '',
-        description: '',
-        image: '',
-        date: '',
-        email: user.email
+      const response = await fetch('http://localhost:5000/api/listings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(listingData)
       });
+
+      if (response.ok) {
+        toast.success('Listing added successfully!');
+        
+        // Reset form
+        setFormData({
+          name: '',
+          category: '',
+          price: '',
+          location: '',
+          description: '',
+          image: '',
+          date: '',
+          email: user.email
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add listing');
+      }
       
     } catch (error) {
       console.error('Error adding listing:', error);
-      toast.error('Failed to add listing. Please try again.');
+      toast.error(error.message || 'Failed to add listing. Please try again.');
     } finally {
       setLoading(false);
     }

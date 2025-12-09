@@ -14,6 +14,7 @@ import servicesRoutes from './routes/services.js';
 import listingsRoutes from './routes/listings.js';
 import ordersRoutes from './routes/orders.js';
 import authRoutes from './routes/auth.js';
+import notificationsRoutes from './routes/notifications.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -52,14 +53,15 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/listings', listingsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Root route - API information page
 app.get('/', (req, res) => {
   res.json({
-    name: 'WarmPaws API Server',
+    name: 'PawMart API Server',
     version: '1.0.0',
     status: 'running',
-    message: 'Welcome to the WarmPaws Backend API',
+    message: 'Welcome to the PawMart Backend API',
     documentation: {
       health: '/api/health',
       auth: {
@@ -99,7 +101,7 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'WarmPaws Server is running',
+    message: 'PawMart Server is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -120,7 +122,7 @@ app.use('*', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 WarmPaws Server running on port ${PORT}`);
+  console.log(`🚀 PawMart Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

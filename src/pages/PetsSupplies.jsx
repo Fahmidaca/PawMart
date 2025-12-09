@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const PetsSupplies = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [listings, setListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,97 +15,104 @@ const PetsSupplies = () => {
   const categories = [
     'All',
     'Pets',
-    'Food',
+    'Food', 
     'Accessories',
     'Care Products'
   ];
 
-  // Mock data for demonstration
-  const mockListings = [
-    {
-      id: '1',
-      name: 'Golden Retriever Puppy',
-      category: 'Pets',
-      price: 0,
-      location: 'Dhaka',
-      description: 'Friendly 2-month-old puppy available for adoption.',
-      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: 'owner1@gmail.com',
-      date: '2025-12-15'
-    },
-    {
-      id: '2',
-      name: 'Premium Dog Food',
-      category: 'Food',
-      price: 2500,
-      location: 'Chattogram',
-      description: 'High-quality dry dog food for adult dogs.',
-      image: 'https://images.unsplash.com/photo-1561037404-61cd46aa615b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: 'shop1@gmail.com',
-      date: '2025-12-10'
-    },
-    {
-      id: '3',
-      name: 'Interactive Cat Toy',
-      category: 'Accessories',
-      price: 800,
-      location: 'Sylhet',
-      description: 'Fun interactive toy for cats to play with.',
-      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: 'shop2@gmail.com',
-      date: '2025-12-12'
-    },
-    {
-      id: '4',
-      name: 'Pet Shampoo',
-      category: 'Care Products',
-      price: 450,
-      location: 'Dhaka',
-      description: 'Gentle shampoo for sensitive pet skin.',
-      image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: 'shop3@gmail.com',
-      date: '2025-12-08'
-    },
-    {
-      id: '5',
-      name: 'Persian Cat',
-      category: 'Pets',
-      price: 0,
-      location: 'Rajshahi',
-      description: 'Beautiful Persian cat looking for a loving home.',
-      image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: 'owner2@gmail.com',
-      date: '2025-12-20'
-    },
-    {
-      id: '6',
-      name: 'Dog Leash',
-      category: 'Accessories',
-      price: 350,
-      location: 'Khulna',
-      description: 'Durable leash for medium to large dogs.',
-      image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: 'shop4@gmail.com',
-      date: '2025-12-14'
+  // Category mapping to match Home page logic
+  const getCategoryServices = (category) => {
+    switch (category) {
+      case 'Pets':
+        return listings.filter(service => service.originalCategory === 'Pet Adoption');
+      case 'Food':
+        return listings.filter(service => service.originalCategory === 'Pet Food');
+      case 'Accessories':
+        return listings.filter(service => 
+          ['Pet Accessories', 'Pet Toys', 'Pet Furniture', 'Pet Clothing'].includes(service.originalCategory)
+        );
+      case 'Care Products':
+        return listings.filter(service => 
+          ['Veterinary', 'Grooming', 'Cat Care'].includes(service.originalCategory)
+        );
+      default:
+        return listings;
     }
-  ];
+  };
 
+  // Get category count for display
+  const getCategoryCount = (category) => {
+    return getCategoryServices(category).length;
+  };
+
+  // Load listings from API (MongoDB) with fallback to static JSON
   useEffect(() => {
-    // Load listings from API
     const loadListings = async () => {
       try {
+        console.log('Loading listings from API...');
         const response = await fetch('http://localhost:5000/api/listings');
-        const result = await response.json();
         
-        if (result.success) {
-          setListings(result.data);
-          setFilteredListings(result.data);
+        if (response.ok) {
+          const data = await response.json();
+          const apiListings = data.listings || data;
+          
+          // Transform API data to match listing format
+          const transformedListings = apiListings.map(listing => ({
+            id: listing._id || listing.id,
+            name: listing.name || listing.serviceName,
+            category: listing.category === 'Pet Adoption' || listing.category === 'Pets' ? 'Pets' :
+                     listing.category === 'Pet Food' || listing.category === 'Food' ? 'Food' :
+                     ['Pet Accessories', 'Pet Toys', 'Pet Furniture', 'Pet Clothing', 'Accessories'].includes(listing.category) ? 'Accessories' :
+                     ['Veterinary', 'Grooming', 'Cat Care', 'Care Products'].includes(listing.category) ? 'Care Products' :
+                     listing.category,
+            originalCategory: listing.category,
+            price: listing.price || 0,
+            rating: listing.rating || 4.5,
+            location: listing.location || 'Dhaka',
+            description: listing.description,
+            image: listing.image,
+            email: listing.email || listing.providerEmail,
+            date: listing.date || new Date().toISOString().split('T')[0],
+            type: listing.type || (listing.price === 0 ? 'adoption' : 'product')
+          }));
+          
+          console.log('Loaded from API:', transformedListings.length, 'listings');
+          setListings(transformedListings);
         } else {
-          toast.error('Failed to load listings');
+          throw new Error('API request failed');
         }
       } catch (error) {
-        console.error('Error loading listings:', error);
-        toast.error('Failed to load listings. Please try again.');
+        console.log('API failed, falling back to static JSON...');
+        // Fallback to static JSON
+        try {
+          const response = await fetch('/data/services.json');
+          const data = await response.json();
+          
+          const transformedListings = data.map(service => ({
+            id: service.serviceId,
+            name: service.serviceName,
+            category: service.category === 'Pet Adoption' ? 'Pets' :
+                     service.category === 'Pet Food' ? 'Food' :
+                     ['Pet Accessories', 'Pet Toys', 'Pet Furniture', 'Pet Clothing'].includes(service.category) ? 'Accessories' :
+                     ['Veterinary', 'Grooming', 'Cat Care'].includes(service.category) ? 'Care Products' :
+                     service.category,
+            originalCategory: service.category,
+            price: service.price,
+            rating: service.rating,
+            location: service.providerName.split(' ')[0] + ' City',
+            description: service.description,
+            image: service.image,
+            email: service.providerEmail,
+            date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            type: service.type
+          }));
+          
+          console.log('Loaded from fallback:', transformedListings.length, 'listings');
+          setListings(transformedListings);
+        } catch (fallbackError) {
+          console.error('Error loading services:', fallbackError);
+          toast.error('Failed to load listings');
+        }
       } finally {
         setLoading(false);
       }
@@ -113,21 +121,36 @@ const PetsSupplies = () => {
     loadListings();
   }, []);
 
+  // Handle URL parameters for category filtering
+  useEffect(() => {
+    const urlCategory = searchParams.get('category');
+    if (urlCategory && categories.includes(urlCategory)) {
+      setSelectedCategory(urlCategory === 'All' ? '' : urlCategory);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     // Filter listings based on category and search term
     let filtered = listings;
 
+    console.log('Filtering listings:', { total: listings.length, selectedCategory, searchTerm });
+
+    // Apply category filter using the same logic as Home page
     if (selectedCategory && selectedCategory !== 'All') {
-      filtered = filtered.filter(listing => listing.category === selectedCategory);
+      filtered = getCategoryServices(selectedCategory);
+      console.log('After category filter:', filtered.length, 'items');
     }
 
+    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(listing =>
         listing.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         listing.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      console.log('After search filter:', filtered.length, 'items');
     }
 
+    console.log('Final filtered listings:', filtered.length);
     setFilteredListings(filtered);
   }, [listings, selectedCategory, searchTerm]);
 
@@ -171,17 +194,17 @@ const PetsSupplies = () => {
             </div>
             
             {/* Category Filter */}
-            <div className="md:w-48">
+            <div className="md:w-64">
               <select
                 value={selectedCategory || 'All'}
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent"
               >
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
+                <option value="All">All ({listings.length})</option>
+                <option value="Pets">Pets ({getCategoryCount('Pets')})</option>
+                <option value="Food">Food ({getCategoryCount('Food')})</option>
+                <option value="Accessories">Accessories ({getCategoryCount('Accessories')})</option>
+                <option value="Care Products">Care Products ({getCategoryCount('Care Products')})</option>
               </select>
             </div>
           </div>
@@ -236,7 +259,7 @@ const PetsSupplies = () => {
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-purple-100 text-purple-800'
                     }`}>
-                      {listing.category}
+                      {listing.originalCategory || listing.category}
                     </span>
                     <div className="text-sm text-gray-500">{listing.location}</div>
                   </div>
@@ -247,7 +270,7 @@ const PetsSupplies = () => {
                   </h3>
                   
                   {/* Description */}
-                  <p className="text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-gray-600 mb-4 overflow-hidden" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>
                     {listing.description}
                   </p>
                   
@@ -259,12 +282,16 @@ const PetsSupplies = () => {
                       ) : (
                         <div>
                           <span className="text-2xl font-bold text-warm-600">৳{listing.price}</span>
+                          <div className="text-sm text-gray-500 flex items-center mt-1">
+                            <span className="text-yellow-400">★</span>
+                            <span className="ml-1">{listing.rating}</span>
+                          </div>
                         </div>
                       )}
                     </div>
                     
                     <Link 
-                      to={user ? `/listing/${listing.id}` : '/login'}
+                      to={user ? `/service/${listing.id}` : '/login'}
                       className="btn-primary-warm text-sm"
                       onClick={() => {
                         if (!user) {
@@ -272,7 +299,7 @@ const PetsSupplies = () => {
                         }
                       }}
                     >
-                      See Details
+                      {listing.type === 'adoption' ? 'Adopt Now' : 'View Details'}
                     </Link>
                   </div>
                   

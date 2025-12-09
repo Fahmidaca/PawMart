@@ -13,12 +13,10 @@ const Footer = () => {
                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                 </svg>
               </div>
-              <span className="ml-3 text-xl font-bold">WarmPaws</span>
+              <span className="ml-3 text-xl font-bold">PawMart</span>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">
-              Your cozy winter companion platform designed to ensure your furry friends stay warm, 
-              safe, and healthy during the cold season. From professional pet care services to 
-              expert winter tips, we've got you covered.
+              PawMart connects local pet owners and buyers for adoption and pet care products.
             </p>
             <div className="flex space-x-4">
               {/* Social Media Icons */}
@@ -55,18 +53,23 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#services" className="text-gray-300 hover:text-warm-500 transition-colors duration-200">
-                  Services
+                <a href="/pets-supplies" className="text-gray-300 hover:text-warm-500 transition-colors duration-200">
+                  Pets & Supplies
                 </a>
               </li>
               <li>
-                <a href="#tips" className="text-gray-300 hover:text-warm-500 transition-colors duration-200">
-                  Winter Tips
+                <a href="/add-listing" className="text-gray-300 hover:text-warm-500 transition-colors duration-200">
+                  Add Listing
                 </a>
               </li>
               <li>
-                <a href="#experts" className="text-gray-300 hover:text-warm-500 transition-colors duration-200">
-                  Our Experts
+                <a href="/my-listings" className="text-gray-300 hover:text-warm-500 transition-colors duration-200">
+                  My Listings
+                </a>
+              </li>
+              <li>
+                <a href="/my-orders" className="text-gray-300 hover:text-warm-500 transition-colors duration-200">
+                  My Orders
                 </a>
               </li>
             </ul>
@@ -80,20 +83,20 @@ const Footer = () => {
                 <svg className="h-5 w-5 mr-2 text-warm-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span>info@warmpaws.com</span>
+                <span>info@pawmart.com</span>
               </div>
               <div className="flex items-center">
                 <svg className="h-5 w-5 mr-2 text-warm-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                <span>+1 (555) 123-4567</span>
+                <span>+880 123-456789</span>
               </div>
               <div className="flex items-start">
                 <svg className="h-5 w-5 mr-2 mt-0.5 text-warm-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>123 Pet Care Street<br />Winter City, WC 12345</span>
+                <span>Dhaka, Bangladesh<br />Connect local pet lovers</span>
               </div>
             </div>
           </div>
@@ -103,17 +106,17 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
-              © {currentYear} WarmPaws. All rights reserved.
+              © {currentYear} PawMart. All rights reserved.
             </div>
             <div className="flex space-x-6 text-sm">
-              <a href="#" className="text-gray-400 hover:text-warm-500 transition-colors duration-200">
-                Privacy Policy
+              <a href="/" className="text-gray-400 hover:text-warm-500 transition-colors duration-200">
+                Home
               </a>
-              <a href="#" className="text-gray-400 hover:text-warm-500 transition-colors duration-200">
-                Terms of Service
+              <a href="/contact" className="text-gray-400 hover:text-warm-500 transition-colors duration-200">
+                Contact
               </a>
-              <a href="#" className="text-gray-400 hover:text-warm-500 transition-colors duration-200">
-                Cookie Policy
+              <a href="/terms" className="text-gray-400 hover:text-warm-500 transition-colors duration-200">
+                Terms
               </a>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ThemeToggle from './ThemeToggle';
 import toast from 'react-hot-toast';
 
 const Navbar = () => {
@@ -25,7 +26,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and brand */}
@@ -36,18 +37,19 @@ const Navbar = () => {
                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                 </svg>
               </div>
-              <span className="ml-3 text-xl font-bold text-gray-900">PawMart</span>
+              <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white">PawMart</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4">
+            <ThemeToggle />
             <Link
               to="/"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                 isActive('/') 
-                  ? 'text-warm-600 bg-warm-50' 
-                  : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                  ? 'text-warm-600 bg-warm-50 dark:bg-warm-900 dark:text-warm-300' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-warm-600 hover:bg-warm-50 dark:hover:bg-warm-900 dark:hover:text-warm-300'
               }`}
             >
               Home
@@ -57,23 +59,14 @@ const Navbar = () => {
               to="/pets-supplies"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                 isActive('/pets-supplies') 
-                  ? 'text-warm-600 bg-warm-50' 
-                  : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                  ? 'text-warm-600 bg-warm-50 dark:bg-warm-900 dark:text-warm-300' 
+                  : 'text-gray-700 dark:text-gray-300 hover:text-warm-600 hover:bg-warm-50 dark:hover:bg-warm-900 dark:hover:text-warm-300'
               }`}
             >
               Pets & Supplies
             </Link>
             
-            <Link
-              to="/services"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                isActive('/services') 
-                  ? 'text-warm-600 bg-warm-50' 
-                  : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
-              }`}
-            >
-              Services
-            </Link>
+
             
             {user ? (
               <>
@@ -108,6 +101,17 @@ const Navbar = () => {
                   }`}
                 >
                   My Orders
+                </Link>
+                
+                <Link
+                  to="/pet-health-dashboard"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    isActive('/pet-health-dashboard') 
+                      ? 'text-warm-600 bg-warm-50' 
+                      : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                  }`}
+                >
+                  Pet Health
                 </Link>
                 
                 {/* User Menu */}
@@ -216,17 +220,7 @@ const Navbar = () => {
                 Pets & Supplies
               </Link>
               
-              <Link
-                to="/services"
-                onClick={() => setIsMenuOpen(false)}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                  isActive('/services') 
-                    ? 'text-warm-600 bg-warm-50' 
-                    : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
-                }`}
-              >
-                Services
-              </Link>
+
               
               {user ? (
                 <>
@@ -264,6 +258,18 @@ const Navbar = () => {
                     }`}
                   >
                     My Orders
+                  </Link>
+                  
+                  <Link
+                    to="/pet-health-dashboard"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                      isActive('/pet-health-dashboard') 
+                        ? 'text-warm-600 bg-warm-50' 
+                        : 'text-gray-700 hover:text-warm-600 hover:bg-warm-50'
+                    }`}
+                  >
+                    Pet Health
                   </Link>
                   
                   <div className="px-3 py-2 text-sm text-gray-500">

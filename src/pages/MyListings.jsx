@@ -8,63 +8,34 @@ const MyListings = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  // Mock data - in real app, fetch from MongoDB based on user ID
-  const mockAllListings = [
-    {
-      id: '1',
-      name: 'Golden Retriever Puppy',
-      category: 'Pets',
-      price: 0,
-      location: 'Dhaka',
-      description: 'Friendly 2-month-old puppy available for adoption.',
-      image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: user?.email || 'test@gmail.com',
-      date: '2025-12-15',
-      userId: user?.uid || 'user1'
-    },
-    {
-      id: '2',
-      name: 'Premium Dog Food',
-      category: 'Food',
-      price: 2500,
-      location: 'Chattogram',
-      description: 'High-quality dry dog food for adult dogs.',
-      image: 'https://images.unsplash.com/photo-1589883661923-6471cb9b0b46?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: 'other@gmail.com',
-      date: '2025-12-10',
-      userId: 'otheruser'
-    },
-    {
-      id: '3',
-      name: 'Interactive Cat Toy',
-      category: 'Accessories',
-      price: 800,
-      location: 'Sylhet',
-      description: 'Fun interactive toy for cats to play with.',
-      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      email: user?.email || 'test@gmail.com',
-      date: '2025-12-12',
-      userId: user?.uid || 'user1'
-    }
-  ];
+  const [editModal, setEditModal] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
 
   useEffect(() => {
     if (!user) {
+      setLoading(false);
       return;
     }
 
-    // Load user's listings
+    // Load user's listings from API
     const loadListings = async () => {
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await fetch(`http://localhost:5000/api/listings?email=${user.email}`);
         
-        // Filter listings for current user
-        const userListings = mockAllListings.filter(listing => listing.userId === user.uid);
-        setListings(userListings);
+        if (response.ok) {
+          const data = await response.json();
+          const userListings = (data.listings || data).filter(
+            listing => listing.email === user.email || listing.userId === user.uid
+          );
+          setListings(userListings);
+        } else {
+          // Fallback to empty array if API fails
+          setListings([]);
+        }
       } catch (error) {
+        console.error('Error loading listings:', error);
         toast.error('Failed to load listings');
+        setListings([]);
       } finally {
         setLoading(false);
       }
@@ -75,21 +46,59 @@ const MyListings = () => {
 
   const handleDelete = async (listingId) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await fetch(`http://localhost:5000/api/listings/${listingId}`, {
+        method: 'DELETE',
+      });
       
-      // Remove from local state
-      setListings(prev => prev.filter(listing => listing.id !== listingId));
-      toast.success('Listing deleted successfully');
+      if (response.ok) {
+        setListings(prev => prev.filter(listing => listing._id !== listingId && listing.id !== listingId));
+        toast.success('Listing deleted successfully');
+      } else {
+        throw new Error('Failed to delete');
+      }
       setDeleteConfirm(null);
     } catch (error) {
       toast.error('Failed to delete listing');
     }
   };
 
-  const handleUpdate = (listingId) => {
-    // In a real app, this would open an update modal or navigate to edit page
-    toast.info('Update functionality would open here');
+  const handleUpdate = (listing) => {
+    setEditFormData({
+      name: listing.name,
+      category: listing.category,
+      price: listing.price,
+      location: listing.location,
+      description: listing.description,
+      image: listing.image,
+      date: listing.date
+    });
+    setEditModal(listing._id || listing.id);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`http://localhost:5000/api/listings/${editModal}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editFormData)
+      });
+      
+      if (response.ok) {
+        const updatedListing = await response.json();
+        setListings(prev => prev.map(listing => 
+          (listing._id === editModal || listing.id === editModal) ? { ...listing, ...editFormData } : listing
+        ));
+        toast.success('Listing updated successfully');
+        setEditModal(null);
+      } else {
+        throw new Error('Failed to update');
+      }
+    } catch (error) {
+      toast.error('Failed to update listing');
+    }
   };
 
   if (!user) {
@@ -244,7 +253,7 @@ const MyListings = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleUpdate(listing.id)}
+                            onClick={() => handleUpdate(listing)}
                             className="text-blue-600 hover:text-blue-900 flex items-center"
                           >
                             <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -254,7 +263,7 @@ const MyListings = () => {
                           </button>
                           
                           <button
-                            onClick={() => setDeleteConfirm(listing.id)}
+                            onClick={() => setDeleteConfirm(listing._id || listing.id)}
                             className="text-red-600 hover:text-red-900 flex items-center"
                           >
                             <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -294,6 +303,96 @@ const MyListings = () => {
                   Delete
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {editModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Listing</h3>
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={editFormData.name || ''}
+                    onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-warm-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select
+                    value={editFormData.category || ''}
+                    onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-warm-500"
+                    required
+                  >
+                    <option value="Pets">Pets</option>
+                    <option value="Food">Food</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Care Products">Care Products</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                  <input
+                    type="number"
+                    value={editFormData.price || 0}
+                    onChange={(e) => setEditFormData({...editFormData, price: parseFloat(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-warm-500"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                  <input
+                    type="text"
+                    value={editFormData.location || ''}
+                    onChange={(e) => setEditFormData({...editFormData, location: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-warm-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={editFormData.description || ''}
+                    onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-warm-500"
+                    rows={3}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                  <input
+                    type="url"
+                    value={editFormData.image || ''}
+                    onChange={(e) => setEditFormData({...editFormData, image: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-warm-500"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditModal(null)}
+                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-warm-600 text-white rounded-md hover:bg-warm-700"
+                  >
+                    Update
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

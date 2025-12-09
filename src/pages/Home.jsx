@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { useAuth } from '../contexts/AuthContext';
+import AnimatedHero from '../components/AnimatedHero';
 import toast from 'react-hot-toast';
 
 // Import Swiper styles
@@ -54,21 +55,35 @@ const Home = () => {
   // Check if service is favorite
   const isFavorite = (serviceId) => favorites.includes(serviceId);
 
-  // Load services from JSON
+  // Load listings from API (MongoDB)
   useEffect(() => {
-    const loadServices = async () => {
+    const loadListings = async () => {
       try {
-        const response = await fetch('/data/services.json');
-        const data = await response.json();
-        setServices(data);
+        const response = await fetch('http://localhost:5000/api/listings?limit=6');
+        if (response.ok) {
+          const data = await response.json();
+          setServices(data.listings || data);
+        } else {
+          // Fallback to static JSON if API fails
+          const fallbackResponse = await fetch('/data/services.json');
+          const fallbackData = await fallbackResponse.json();
+          setServices(fallbackData);
+        }
       } catch (error) {
-        toast.error('Failed to load services');
+        // Fallback to static JSON if API fails
+        try {
+          const fallbackResponse = await fetch('/data/services.json');
+          const fallbackData = await fallbackResponse.json();
+          setServices(fallbackData);
+        } catch (fallbackError) {
+          toast.error('Failed to load listings');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    loadServices();
+    loadListings();
   }, []);
 
   // Hero slider data for PawMart
@@ -96,67 +111,139 @@ const Home = () => {
     }
   ];
 
-  // Winter tips data
-  const winterTips = [
+  // Generate categories from services data with real counts
+  const getCategoryStats = () => {
+    const categoryStats = {};
+    services.forEach(service => {
+      if (!categoryStats[service.category]) {
+        categoryStats[service.category] = 0;
+      }
+      categoryStats[service.category]++;
+    });
+    return categoryStats;
+  };
+
+  const categoryStats = getCategoryStats();
+
+  // Category data for PawMart (matching assignment requirements)
+  const categories = [
     {
       id: 1,
-      title: 'Dress for Success',
-      description: 'Keep your pets warm with appropriate winter clothing. Small dogs and short-haired breeds especially benefit from winter coats.',
-      icon: '🧥'
+      name: 'Pets',
+      description: 'Adopt loving pets looking for forever homes',
+      icon: '🐶',
+      count: `${categoryStats['Pets'] || categoryStats['Pet Adoption'] || 0} Pets Available`,
+      link: '/pets-supplies?category=Pets',
+      color: 'bg-green-500'
     },
     {
       id: 2,
-      title: 'Paw Protection',
-      description: 'Check your pet\'s paws regularly for ice, salt, and other winter hazards. Consider using pet-safe ice melts.',
-      icon: '🐾'
+      name: 'Food',
+      description: 'Quality pet food and nutritional products',
+      icon: '🍖',
+      count: `${categoryStats['Food'] || categoryStats['Pet Food'] || 0} Products`,
+      link: '/pets-supplies?category=Food',
+      color: 'bg-yellow-500'
     },
     {
       id: 3,
-      title: 'Indoor Exercise',
-      description: 'Maintain your pet\'s exercise routine with indoor activities when temperatures drop below freezing.',
-      icon: '🏠'
+      name: 'Accessories',
+      description: 'Toys, collars, leashes and pet accessories',
+      icon: '🧸',
+      count: `${(categoryStats['Accessories'] || 0) + (categoryStats['Pet Accessories'] || 0) + (categoryStats['Pet Toys'] || 0)} Items`,
+      link: '/pets-supplies?category=Accessories',
+      color: 'bg-blue-500'
     },
     {
       id: 4,
-      title: 'Hydration Matters',
-      description: 'Ensure your pet has access to fresh water. Dehydration can occur in cold weather too!',
-      icon: '💧'
+      name: 'Care Products',
+      description: 'Grooming supplies and health care products',
+      icon: '💊',
+      count: `${(categoryStats['Care Products'] || 0) + (categoryStats['Veterinary'] || 0) + (categoryStats['Grooming'] || 0)} Products`,
+      link: '/pets-supplies?category=Care Products',
+      color: 'bg-purple-500'
     }
   ];
 
-  // Expert vets data
-  const experts = [
+  // Recent services data (from loaded services)
+  const recentServices = services.slice(0, 6);
+
+  // Pet Experts data
+  const petExperts = [
     {
       id: 1,
-      name: 'Dr. Sarah Johnson',
-      specialization: 'Winter Pet Care Specialist',
-      experience: '12 years',
+      name: 'Dr. Sarah Ahmed',
+      specialization: 'Veterinary Medicine',
+      location: 'Dhaka',
       image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      description: 'Expert in cold-weather pet health and winter safety protocols.'
+      experience: '15+ years',
+      rating: 4.9,
+      description: 'Specializes in pet health, vaccinations, and preventive care for all types of pets.',
+      services: 'Health Checkups, Vaccinations, Surgery'
     },
     {
       id: 2,
-      name: 'Dr. Michael Chen',
-      specialization: 'Emergency Veterinary Medicine',
-      experience: '8 years',
-      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      description: 'Specializes in treating hypothermia and winter-related pet emergencies.'
+      name: 'Dr. Rahman Hassan',
+      specialization: 'Pet Surgery',
+      location: 'Chattogram',
+      image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      experience: '12+ years',
+      rating: 4.8,
+      description: 'Expert in pet surgery and emergency medical care with state-of-the-art facilities.',
+      services: 'Emergency Care, Surgery, Critical Care'
     },
     {
       id: 3,
-      name: 'Dr. Emily Rodriguez',
+      name: 'Dr. Fatema Khatun',
       specialization: 'Pet Nutrition & Wellness',
-      experience: '10 years',
-      image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      description: 'Helps pets maintain optimal health through proper winter nutrition.'
+      location: 'Sylhet',
+      image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      experience: '10+ years',
+      rating: 4.9,
+      description: 'Nutrition specialist focusing on dietary needs and wellness programs for optimal pet health.',
+      services: 'Nutrition, Wellness, Dietary Planning'
     },
     {
       id: 4,
-      name: 'Dr. James Wilson',
-      specialization: 'Pet Behaviorist',
-      experience: '15 years',
-      image: 'https://images.unsplash.com/photo-1638202993928-7267aad84c31?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      description: 'Understands how cold weather affects pet behavior and mental health.'
+      name: 'Dr. Karim Mahmud',
+      specialization: 'Pet Behavior & Training',
+      location: 'Rajshahi',
+      image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      experience: '8+ years',
+      rating: 4.7,
+      description: 'Behavioral expert helping pets with training, social issues, and mental health support.',
+      services: 'Behavior Training, Socialization, Mental Health'
+    }
+  ];
+
+  // Pet Heroes data
+  const petHeroes = [
+    {
+      id: 1,
+      name: 'Sarah Ahmed',
+      location: 'Dhaka',
+      image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      story: 'Adopted Max, a golden retriever, and they\'ve been inseparable companions for 2 years.',
+      petName: 'Max',
+      petType: 'Golden Retriever'
+    },
+    {
+      id: 2,
+      name: 'Rahman Family',
+      location: 'Chattogram',
+      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      story: 'Gave Luna the Persian cat a loving home where she thrives and brings joy daily.',
+      petName: 'Luna',
+      petType: 'Persian Cat'
+    },
+    {
+      id: 3,
+      name: 'Dr. Fatema',
+      location: 'Sylhet',
+      image: 'https://images.unsplash.com/photo-1551836022-4c4c79ecde51?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+      story: 'Rescued Buddy from a shelter and now he\'s the office mascot bringing smiles to everyone.',
+      petName: 'Buddy',
+      petType: 'Mixed Breed'
     }
   ];
 
@@ -188,36 +275,7 @@ const Home = () => {
               >
                 <div className="absolute inset-0 bg-black bg-opacity-50"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white px-4 max-w-4xl">
-                    <h1 
-                      className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in"
-                      data-aos="fade-up"
-                      data-aos-delay="200"
-                    >
-                      {slide.title}
-                    </h1>
-                    <p 
-                      className="text-lg md:text-xl mb-8 max-w-2xl mx-auto animate-fade-in"
-                      data-aos="fade-up"
-                      data-aos-delay="400"
-                    >
-                      {slide.subtitle}
-                    </p>
-                    <button 
-                      className="btn-primary-warm text-lg px-8 py-3 animate-bounce-slow"
-                      data-aos="fade-up"
-                      data-aos-delay="600"
-                      onClick={() => {
-                        if (!user) {
-                          toast.error('Please login to access our services');
-                        }
-                      }}
-                    >
-                      <Link to={user ? "#services" : "/login"}>
-                        {slide.cta}
-                      </Link>
-                    </button>
-                  </div>
+                  <AnimatedHero user={user} />
                 </div>
               </div>
             </SwiperSlide>
@@ -225,121 +283,277 @@ const Home = () => {
         </Swiper>
       </section>
 
-      {/* Popular Winter Care Services */}
-      <section id="services" className="py-16 bg-gray-50">
+      {/* Category Section */}
+      <section id="categories" className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12" data-aos="fade-up">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Popular Winter Care Services
+              Browse Categories
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover our most trusted winter pet care services to keep your furry friends warm and healthy
+              Discover amazing pets for adoption and quality pet supplies from trusted local sellers
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.slice(0, 6).map((service, index) => (
-              <div 
-                key={service.serviceId} 
-                className="card-warm p-6 hover:scale-105 transition-transform duration-300"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {categories.map((category, index) => (
+              <Link 
+                key={category.id}
+                to={category.link}
+                className="group"
                 data-aos="fade-up"
                 data-aos-delay={index * 100}
               >
-                <div className="aspect-w-16 aspect-h-9 mb-4 relative">
-                  <img 
-                    src={service.image} 
-                    alt={service.serviceName}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  {/* Favorite Button */}
-                  <button
-                    onClick={() => toggleFavorite(service.serviceId)}
-                    className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 ${
-                      isFavorite(service.serviceId)
-                        ? 'bg-red-500 text-white hover:bg-red-600'
-                        : 'bg-white text-gray-400 hover:text-red-500 hover:bg-red-50'
-                    }`}
-                    title={isFavorite(service.serviceId) ? 'Remove from favorites' : 'Add to favorites'}
-                  >
-                    <svg 
-                      className={`h-5 w-5 ${
-                        isFavorite(service.serviceId) ? 'fill-current' : ''
-                      }`} 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-                      />
-                    </svg>
-                  </button>
-                </div>
-                
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-warm-600 bg-warm-100 px-2 py-1 rounded">
-                    {service.category}
-                  </span>
-                  <div className="flex items-center">
-                    <svg className="h-4 w-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="text-sm text-gray-600 ml-1">{service.rating}</span>
+                <div className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+                  <div className="text-center">
+                    <div className={`w-16 h-16 ${category.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <span className="text-3xl">{category.icon}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {category.name}
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      {category.description}
+                    </p>
+                    <div className="text-sm font-medium text-warm-600">
+                      {category.count}
+                    </div>
                   </div>
                 </div>
-
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {service.serviceName}
-                </h3>
-                
-                <p className="text-gray-600 mb-4 line-clamp-2">
-                  {service.description}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-2xl font-bold text-warm-600">${service.price}</span>
-                    <span className="text-gray-500 text-sm ml-1">/service</span>
-                  </div>
-                  <Link 
-                    to={user ? `/service/${service.serviceId}` : '/login'}
-                    className="btn-primary-warm text-sm"
-                    onClick={() => {
-                      if (!user) {
-                        toast.error('Please login to view service details');
-                      }
-                    }}
-                  >
-                    View Details
-                  </Link>
-                </div>
-                
-                <div className="mt-3 text-sm text-gray-500">
-                  <span>By {service.providerName}</span>
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Meet Our Expert Vets */}
-      <section id="experts" className="py-16 bg-gray-50">
+      {/* Recent Listings */}
+      <section id="recent-listings" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12" data-aos="fade-up">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Meet Our Expert Vets
+              Recent Listings
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Our team of experienced veterinarians specializes in winter pet care and emergency medicine
+              Check out the latest pets and products available for adoption and purchase
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {recentServices.map((service, index) => (
+              <div 
+                key={service.serviceId}
+                className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                data-aos="fade-up"
+                data-aos-delay={index * 100}
+              >
+                <div className="aspect-w-16 aspect-h-9">
+                  <img 
+                    src={service.image} 
+                    alt={service.serviceName}
+                    className="w-full h-48 object-cover"
+                  />
+                </div>
+                
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      service.category === 'Pet Adoption' 
+                        ? 'bg-green-100 text-green-800' 
+                        : service.category === 'Pet Food'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : service.category === 'Pet Accessories' || service.category === 'Pet Toys' || service.category === 'Pet Furniture' || service.category === 'Pet Clothing'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {service.category}
+                    </span>
+                    <div className="text-sm text-gray-500">{service.providerName}</div>
+                  </div>
+
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {service.serviceName}
+                  </h3>
+                  
+                  <p className="text-gray-600 text-sm mb-4">
+                    {service.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      {service.price === 0 ? (
+                        <span className="text-lg font-bold text-green-600">Free for Adoption</span>
+                      ) : (
+                        <span className="text-2xl font-bold text-warm-600">৳{service.price}</span>
+                      )}
+                      <div className="text-sm text-gray-500 flex items-center mt-1">
+                        <span className="text-yellow-400">★</span>
+                        <span className="ml-1">{service.rating}</span>
+                      </div>
+                    </div>
+                    
+                    <Link 
+                      to={user ? `/service/${service.serviceId}` : '/login'}
+                      className="btn-primary-warm text-sm"
+                      onClick={() => {
+                        if (!user) {
+                          toast.error('Please login to view details');
+                        }
+                      }}
+                    >
+                      {service.type === 'adoption' ? 'Adopt Now' : 'View Details'}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12" data-aos="fade-up">
+            <Link 
+              to="/services"
+              className="btn-primary-warm text-lg px-8 py-3"
+            >
+              View All Services
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Values Section */}
+      <section className="py-16 bg-gradient-to-br from-warm-50 to-orange-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16" data-aos="fade-up">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Our Core Values
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              The principles that drive everything we do at WarmPaws
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Save a Life Card */}
+            <div 
+              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 overflow-hidden"
+              data-aos="fade-up"
+              data-aos-delay="100"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-600 opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
+              <div className="relative p-8 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-3xl">🏠</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Save a Life</h3>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  Your adoption helps reduce shelter overpopulation and gives a pet a second chance at happiness. Every adoption creates space for another animal in need.
+                </p>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-green-600 mb-1">2 Lives Saved</div>
+                  <div className="text-sm text-green-700">The pet you adopt + the space created for another</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Unconditional Love Card */}
+            <div 
+              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 overflow-hidden"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-red-500 opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
+              <div className="relative p-8 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-pink-400 to-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-3xl">💝</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Unconditional Love</h3>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  Adopted pets often show incredible gratitude and form deep, lasting bonds with their new families. Experience the joy of a love that knows no bounds.
+                </p>
+                <div className="bg-pink-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-pink-600 mb-1">100% Loyal</div>
+                  <div className="text-sm text-pink-700">Dogs' unconditional love is scientifically proven</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Support Community Card */}
+            <div 
+              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 overflow-hidden"
+              data-aos="fade-up"
+              data-aos-delay="300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
+              <div className="relative p-8 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-3xl">🌍</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Support Community</h3>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  Help local pet owners, support responsible breeding practices, and strengthen the bonds within your community through shared love for animals.
+                </p>
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-blue-600 mb-1">Growing</div>
+                  <div className="text-sm text-blue-700">Join thousands of caring pet lovers in our community</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Adopt from PawMart */}
+      <section className="py-16 bg-warm-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center" data-aos="fade-up">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Why Adopt from PawMart?
+            </h2>
+            <p className="text-xl mb-8 max-w-2xl mx-auto">
+              Every pet deserves love and care. By adopting, you're giving a second chance to animals in need while enriching your own life with unconditional love.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
+              <Link 
+                to="/pets-supplies?category=Pets" 
+                className="bg-white text-warm-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center"
+              >
+                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                Adopt a Pet Today
+              </Link>
+              <Link 
+                to="/add-listing" 
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-warm-600 transition-colors duration-200"
+              >
+                List Your Pet
+              </Link>
+            </div>
+            
+            <div className="bg-warm-500 bg-opacity-50 rounded-lg p-6 max-w-4xl mx-auto">
+              <h3 className="text-xl font-semibold mb-3">💡 Did You Know?</h3>
+              <p className="text-lg">
+                Every adoption saves two lives - the pet you adopt and the space it creates for another animal in need. Together, we can create a community where every pet has a loving home.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Meet Our Pet Experts */}
+      <section id="pet-experts" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12" data-aos="fade-up">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Meet Our Pet Experts
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Professional veterinarians and specialists providing expert care for all your pet needs
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {experts.map((expert, index) => (
+            {petExperts.map((expert, index) => (
               <div 
                 key={expert.id}
                 className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
@@ -351,169 +565,101 @@ const Home = () => {
                     src={expert.image} 
                     alt={expert.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
+                    }}
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    {expert.name}
+                  </h3>
+                  <p className="text-warm-600 font-medium text-sm mb-1">
+                    {expert.specialization}
+                  </p>
+                  <p className="text-gray-500 text-sm mb-2">
+                    📍 {expert.location} • ⭐ {expert.rating} • 💼 {expert.experience}
+                  </p>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {expert.description}
+                  </p>
+                  <div className="bg-warm-50 rounded-lg p-3">
+                    <div className="flex items-center">
+                      <span className="text-lg mr-2">🏥</span>
+                      <div>
+                        <p className="text-xs font-medium text-gray-900">Specializes In:</p>
+                        <p className="text-xs text-gray-600">{expert.services}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12" data-aos="fade-up">
+            <Link 
+              to="/medical-consultation"
+              className="btn-primary-warm text-lg px-8 py-3"
+            >
+              Book Consultation
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Meet Our Pet Heroes */}
+      <section id="pet-heroes" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12" data-aos="fade-up">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Meet Our Pet Heroes
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Hear inspiring stories from families who found their perfect companions through PawMart
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {petHeroes.map((hero, index) => (
+              <div 
+                key={hero.id}
+                className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                data-aos="fade-up"
+                data-aos-delay={index * 100}
+              >
+                <div className="aspect-square">
+                  <img 
+                    src={hero.image} 
+                    alt={hero.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b647?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
+                    }}
                   />
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                    {expert.name}
+                    {hero.name}
                   </h3>
                   <p className="text-warm-600 font-medium mb-1">
-                    {expert.specialization}
+                    {hero.location}
                   </p>
-                  <p className="text-gray-500 text-sm mb-3">
-                    {expert.experience} experience
+                  <p className="text-gray-600 text-sm mb-4">
+                    "{hero.story}"
                   </p>
-                  <p className="text-gray-600 text-sm">
-                    {expert.description}
-                  </p>
+                  <div className="bg-warm-50 rounded-lg p-3">
+                    <div className="flex items-center">
+                      <span className="text-2xl mr-3">🐾</span>
+                      <div>
+                        <p className="font-semibold text-gray-900">{hero.petName}</p>
+                        <p className="text-sm text-gray-600">{hero.petType}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Emergency Contact & Prevention Section */}
-      <section className="py-16 bg-warm-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              24/7 Emergency Pet Care
-            </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Winter emergencies can happen anytime. Our emergency care team is available around the clock to help your pet when they need it most.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-              <div className="text-center">
-                <div className="text-4xl mb-2">🚨</div>
-                <h3 className="text-lg font-semibold mb-2">Hypothermia Treatment</h3>
-                <p>Immediate care for pets showing signs of cold-related distress</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl mb-2">🐾</div>
-                <h3 className="text-lg font-semibold mb-2">Paw Injuries</h3>
-                <p>Treatment for cuts, frostbite, and ice-related paw damage</p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl mb-2">🏥</div>
-                <h3 className="text-lg font-semibold mb-2">Urgent Care</h3>
-                <p>Round-the-clock emergency consultations and treatments</p>
-              </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
-              <a 
-                href="tel:+15551234567" 
-                className="bg-white text-warm-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200 flex items-center"
-              >
-                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                Call Emergency: (555) 123-4567
-              </a>
-              <Link 
-                to="/safety-guide" 
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-warm-600 transition-colors duration-200"
-              >
-                Complete Safety Guide
-              </Link>
-            </div>
-            
-            <div className="bg-warm-500 bg-opacity-50 rounded-lg p-6 max-w-4xl mx-auto">
-              <h3 className="text-xl font-semibold mb-3">🛡️ Prevention is Better Than Cure</h3>
-              <p className="text-lg">
-                While we're here for emergencies, following our comprehensive winter safety checklist below can help prevent many winter-related pet health issues before they become serious.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Winter Prevention & Safety Tips */}
-      <section id="safety-guide" className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Winter Prevention & Safety Tips
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Following these essential preventive measures can help keep your pets safe, warm, and healthy during the cold season, reducing the need for emergency care.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {winterTips.map((tip, index) => (
-              <div 
-                key={tip.id}
-                className="text-center p-6 rounded-lg hover:bg-warm-50 transition-colors duration-300"
-                data-aos="fade-up"
-                data-aos-delay={index * 100}
-              >
-                <div className="text-6xl mb-4">{tip.icon}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {tip.title}
-                </h3>
-                <p className="text-gray-600">
-                  {tip.description}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Additional Safety Tips */}
-          <div className="bg-warm-50 rounded-lg p-8" data-aos="fade-up">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-              Additional Winter Safety Reminders
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="text-2xl mr-3">❄️</div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Keep Pets Indoors</h4>
-                    <p className="text-gray-600 text-sm">Limit outdoor time during extreme cold. Bring pets inside when temperatures drop below freezing.</p>
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="text-2xl mr-3">🧤</div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Check for Frostbite</h4>
-                    <p className="text-gray-600 text-sm">Monitor ears, tail, and paws for signs of frostbite. Seek immediate vet care if suspected.</p>
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="text-2xl mr-3">🚗</div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Car Safety</h4>
-                    <p className="text-gray-600 text-sm">Never leave pets in cold cars. Warm up vehicles before letting pets inside.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="text-2xl mr-3">🧂</div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Avoid Salt & Chemicals</h4>
-                    <p className="text-gray-600 text-sm">Use pet-safe ice melts. Wash paws after walks to remove harmful substances.</p>
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="text-2xl mr-3">🏠</div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Emergency Supplies</h4>
-                    <p className="text-gray-600 text-sm">Keep emergency contact numbers and basic first aid supplies readily available.</p>
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="text-2xl mr-3">⏰</div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Monitor Closely</h4>
-                    <p className="text-gray-600 text-sm">Watch for signs of cold stress: shivering, lethargy, pale gums, or difficulty breathing.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

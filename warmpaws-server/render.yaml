@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: pawmart-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FIREBASE_PROJECT_ID
+        fromService:
+          type: envVarGroup
+          name: pawmart-config
+          property: FIREBASE_PROJECT_ID
+      - key: JWT_SECRET
+        fromService:
+          type: envVarGroup
+          name: pawmart-config
+          property: JWT_SECRET
+      - key: CLIENT_URL
+        fromService:
+          type: envVarGroup
+          name: pawmart-config
+          property: CLIENT_URL
+
+envVarGroups:
+  - name: pawmart-config
+    envVars:
+      - key: FIREBASE_PROJECT_ID
+        value: warmpaws-app-fa44d
+      - key: JWT_SECRET
+        value: your-super-secure-jwt-secret-key-here
+      - key: CLIENT_URL
+        value: https://poetic-blancmange-cfdeec.netlify.app

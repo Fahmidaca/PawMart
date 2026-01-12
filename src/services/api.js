@@ -1,32 +1,57 @@
 // API service for connecting frontend to backend
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
+// Simple in-memory cache for API responses
+const apiCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 // Helper function to get auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem('authToken');
 };
 
-// Helper function to make API requests
+// Helper function to make API requests with caching
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getAuthToken();
-  
+  const method = options.method || 'GET';
+  const cacheKey = `${method}:${url}`;
+
+  // Check cache for GET requests
+  if (method === 'GET') {
+    const cached = apiCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+      return cached.data;
+    }
+  }
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
+    // Add timeout to prevent long waits
+    signal: AbortSignal.timeout(10000), // 10 second timeout
+    credentials: 'include',
     ...options,
   };
 
   try {
     const response = await fetch(url, config);
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
-    
+
+    // Cache successful GET responses
+    if (method === 'GET') {
+      apiCache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+    }
+
     return data;
   } catch (error) {
     console.error('API request failed:', error);
@@ -91,25 +116,28 @@ export const servicesAPI = {
 
 // Listings API
 export const listingsAPI = {
-  getAll: () => 
-    apiRequest('/listings'),
-  
-  getById: (id) => 
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/listings?${queryString}` : '/listings';
+    return apiRequest(endpoint);
+  },
+
+  getById: (id) =>
     apiRequest(`/listings/${id}`),
-  
-  create: (listingData) => 
+
+  create: (listingData) =>
     apiRequest('/listings', {
       method: 'POST',
       body: JSON.stringify(listingData),
     }),
-  
-  update: (id, listingData) => 
+
+  update: (id, listingData) =>
     apiRequest(`/listings/${id}`, {
       method: 'PUT',
       body: JSON.stringify(listingData),
     }),
-  
-  delete: (id) => 
+
+  delete: (id) =>
     apiRequest(`/listings/${id}`, {
       method: 'DELETE',
     }),

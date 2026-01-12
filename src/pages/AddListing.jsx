@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { listingsAPI } from '../services/api';
 
 const AddListing = () => {
   const { user } = useAuth();
@@ -68,32 +69,21 @@ const AddListing = () => {
         userId: user.uid
       };
 
-      const response = await fetch('http://localhost:5000/api/listings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(listingData)
-      });
+      const response = await listingsAPI.create(listingData);
 
-      if (response.ok) {
-        toast.success('Listing added successfully!');
-        
-        // Reset form
-        setFormData({
-          name: '',
-          category: '',
-          price: '',
-          location: '',
-          description: '',
-          image: '',
-          date: '',
-          email: user.email
-        });
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add listing');
-      }
+      toast.success('Listing added successfully!');
+
+      // Reset form
+      setFormData({
+        name: '',
+        category: '',
+        price: '',
+        location: '',
+        description: '',
+        image: '',
+        date: '',
+        email: user.email
+      });
       
     } catch (error) {
       console.error('Error adding listing:', error);

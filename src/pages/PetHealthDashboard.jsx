@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  Heart, 
-  Activity, 
-  Calendar, 
-  Stethoscope, 
+import {
+  Plus,
+  Heart,
+  Activity,
+  Calendar,
+  Stethoscope,
   AlertCircle,
   ChevronRight,
   FileText,
@@ -22,16 +22,25 @@ import {
 import { format, addDays } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import HealthService from '../services/healthService';
-import HealthChart from '../components/HealthChart';
-import HealthRecordCard from '../components/HealthRecordCard';
-import VaccinationScheduler from '../components/VaccinationScheduler';
 import AddPetModal from '../components/AddPetModal';
-import PDFReportGenerator from '../components/PDFReportGenerator';
-import WeightTrackingChart from '../components/WeightTrackingChart';
-import NotificationCenter from '../components/NotificationCenter';
-import MedicalTimeline from '../components/MedicalTimeline';
-import MedicationManager from '../components/MedicationManager';
 import toast from 'react-hot-toast';
+
+// Lazy load heavy components
+const HealthChart = lazy(() => import('../components/HealthChart'));
+const HealthRecordCard = lazy(() => import('../components/HealthRecordCard'));
+const VaccinationScheduler = lazy(() => import('../components/VaccinationScheduler'));
+const PDFReportGenerator = lazy(() => import('../components/PDFReportGenerator'));
+const WeightTrackingChart = lazy(() => import('../components/WeightTrackingChart'));
+const NotificationCenter = lazy(() => import('../components/NotificationCenter'));
+const MedicalTimeline = lazy(() => import('../components/MedicalTimeline'));
+const MedicationManager = lazy(() => import('../components/MedicationManager'));
+
+// Loading component
+const TabLoading = () => (
+  <div className="flex items-center justify-center py-8">
+    <RefreshCw className="h-8 w-8 text-blue-500 animate-spin" />
+  </div>
+);
 
 const PetHealthDashboard = () => {
   const { user } = useAuth();
@@ -60,6 +69,19 @@ const PetHealthDashboard = () => {
     }
   }, [selectedPet]);
 
+  // Lazy load analytics when analytics tab is selected
+  useEffect(() => {
+    if (selectedPet && activeTab === 'analytics' && !analytics) {
+      HealthService.getHealthAnalytics(selectedPet.id).then(result => {
+        if (result.success) {
+          setAnalytics(result.analytics);
+        }
+      }).catch(error => {
+        console.warn('Analytics failed to load:', error);
+      });
+    }
+  }, [selectedPet, activeTab, analytics]);
+
   const fetchPets = async () => {
     try {
       setLoading(true);
@@ -80,10 +102,10 @@ const PetHealthDashboard = () => {
 
   const fetchHealthData = async (petId) => {
     try {
-      const [recordsResult, vaccinationsResult, analyticsResult] = await Promise.all([
+      // Load records and vaccinations first (most important)
+      const [recordsResult, vaccinationsResult] = await Promise.all([
         HealthService.getHealthRecords(petId),
-        HealthService.getVaccinations(petId),
-        HealthService.getHealthAnalytics(petId)
+        HealthService.getVaccinations(petId)
       ]);
 
       if (recordsResult.success) {
@@ -92,9 +114,8 @@ const PetHealthDashboard = () => {
       if (vaccinationsResult.success) {
         setVaccinations(vaccinationsResult.vaccinations);
       }
-      if (analyticsResult.success) {
-        setAnalytics(analyticsResult.analytics);
-      }
+
+      // Analytics will be loaded lazily when needed
     } catch (error) {
       console.error('Error fetching health data:', error);
       toast.error('Failed to load health data');
@@ -573,144 +594,147 @@ const PetHealthDashboard = () => {
 
                     {/* Tab Content */}
                     <div className="p-6">
-                      {activeTab === 'overview' && analytics && (
-                        <HealthChart analytics={analytics} healthRecords={healthRecords} />
-                      )}
-
-                      {activeTab === 'weight' && (
-                        <WeightTrackingChart 
-                          pet={selectedPet}
-                          weightRecords={selectedPet.weightRecords || []}
-                          onAddWeight={async (weightData) => {
-                            try {
-                              // Update pet weight data
-                              const updatedWeightRecords = [...(selectedPet.weightRecords || []), {
-                                id: `weight-${Date.now()}`,
-                                date: weightData.date,
-                                weight: weightData.weight,
-                                unit: weightData.unit,
-                                notes: weightData.notes
-                              }];
-                              
-                              await HealthService.updatePetProfile(selectedPet.id, {
-                                weight: weightData.weight,
-                                weightUnit: weightData.unit,
-                                weightRecords: updatedWeightRecords
-                              });
-                              
-                              fetchPets();
-                              toast.success('Weight record added!');
-                            } catch (error) {
-                              toast.error('Failed to add weight record');
-                            }
-                          }}
-                        />
-                      )}
-
-                      {activeTab === 'medications' && (
-                        <MedicationManager 
-                          pet={selectedPet}
-                          onUpdateMedication={() => fetchHealthData(selectedPet.id)}
-                        />
-                      )}
-
-                      {activeTab === 'timeline' && (
-                        <MedicalTimeline 
-                          pet={selectedPet}
-                          healthRecords={healthRecords}
-                          vaccinations={vaccinations}
-                          onAddRecord={() => {}}
-                        />
-                      )}
-
-                      {activeTab === 'notifications' && (
-                        <NotificationCenter 
-                          pet={selectedPet}
-                          healthData={{
-                            vaccinations,
-                            records: healthRecords,
-                            healthScore: analytics?.healthScore
-                          }}
-                        />
-                      )}
-
-                      {activeTab === 'vaccinations' && (
-                        <VaccinationScheduler
-                          petId={selectedPet.id}
-                          vaccinations={vaccinations}
-                          onUpdate={() => fetchHealthData(selectedPet.id)}
-                        />
-                      )}
-
-                      {activeTab === 'records' && (
-                        <div className="space-y-4">
-                          {/* Filter and Add Button */}
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                              <Filter className="h-5 w-5 text-gray-400" />
-                              <select
-                                value={recordFilter}
-                                onChange={(e) => setRecordFilter(e.target.value)}
-                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                              >
-                                <option value="all">All Records</option>
-                                <option value="vaccination">Vaccinations</option>
-                                <option value="checkup">Checkups</option>
-                                <option value="illness">Illnesses</option>
-                                <option value="medication">Medications</option>
-                              </select>
-                            </div>
-                            <button
-                              onClick={() => setShowAddRecordModal(true)}
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                            >
-                              <Plus className="h-4 w-4" />
-                              Add Record
-                            </button>
-                          </div>
-
-                          {/* Records List */}
-                          <div className="space-y-3">
-                            {getFilteredRecords().length === 0 ? (
-                              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                                <p>No health records found</p>
-                                <p className="text-sm">Add your first health record to get started</p>
-                              </div>
-                            ) : (
-                              getFilteredRecords().map((record) => (
-                                <HealthRecordCard
-                                  key={record.id}
-                                  record={record}
-                                  onDelete={handleDeleteRecord}
-                                />
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {activeTab === 'analytics' && analytics && (
-                        <div className="space-y-6">
+                      <Suspense fallback={<TabLoading />}>
+                        {activeTab === 'overview' && analytics && (
                           <HealthChart analytics={analytics} healthRecords={healthRecords} />
-                          
-                          {/* PDF Report Generator */}
-                          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-                            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                              Generate Health Report
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                              Download a comprehensive PDF report of {selectedPet.name}'s health history.
-                            </p>
-                            <PDFReportGenerator
-                              pet={selectedPet}
-                              healthRecords={healthRecords}
-                              vaccinations={vaccinations}
-                              analytics={analytics}
-                            />
+                        )}
+
+                        {activeTab === 'weight' && (
+                          <WeightTrackingChart
+                            pet={selectedPet}
+                            weightRecords={selectedPet.weightRecords || []}
+                            onAddWeight={async (weightData) => {
+                              try {
+                                // Update pet weight data
+                                const updatedWeightRecords = [...(selectedPet.weightRecords || []), {
+                                  id: `weight-${Date.now()}`,
+                                  date: weightData.date,
+                                  weight: weightData.weight,
+                                  unit: weightData.unit,
+                                  notes: weightData.notes
+                                }];
+
+                                await HealthService.updatePetProfile(selectedPet.id, {
+                                  weight: weightData.weight,
+                                  weightUnit: weightData.unit,
+                                  weightRecords: updatedWeightRecords
+                                });
+
+                                fetchPets();
+                                toast.success('Weight record added!');
+                              } catch (error) {
+                                toast.error('Failed to add weight record');
+                              }
+                            }}
+                          />
+                        )}
+
+                        {activeTab === 'medications' && (
+                          <MedicationManager
+                            pet={selectedPet}
+                            onUpdateMedication={() => fetchHealthData(selectedPet.id)}
+                          />
+                        )}
+
+                        {activeTab === 'timeline' && (
+                          <MedicalTimeline
+                            pet={selectedPet}
+                            healthRecords={healthRecords}
+                            vaccinations={vaccinations}
+                            onAddRecord={() => {}}
+                          />
+                        )}
+
+                        {activeTab === 'notifications' && (
+                          <NotificationCenter
+                            pet={selectedPet}
+                            healthData={{
+                              vaccinations,
+                              records: healthRecords,
+                              healthScore: analytics?.healthScore
+                            }}
+                          />
+                        )}
+
+                        {activeTab === 'vaccinations' && (
+                          <VaccinationScheduler
+                            petId={selectedPet.id}
+                            vaccinations={vaccinations}
+                            onUpdate={() => fetchHealthData(selectedPet.id)}
+                          />
+                        )}
+
+                        {activeTab === 'records' && (
+                          <div className="space-y-4">
+                            {/* Filter and Add Button */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                              <div className="flex items-center gap-2">
+                                <Filter className="h-5 w-5 text-gray-400" />
+                                <select
+                                  value={recordFilter}
+                                  onChange={(e) => setRecordFilter(e.target.value)}
+                                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                >
+                                  <option value="all">All Records</option>
+                                  <option value="vaccination">Vaccinations</option>
+                                  <option value="checkup">Checkups</option>
+                                  <option value="illness">Illnesses</option>
+                                  <option value="medication">Medications</option>
+                                </select>
+                              </div>
+                              <button
+                                onClick={() => setShowAddRecordModal(true)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add Record
+                              </button>
+                            </div>
+
+                            {/* Records List */}
+                            <div className="space-y-3">
+                              {getFilteredRecords().length === 0 ? (
+                                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                  <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                                  <p>No health records found</p>
+                                  <p className="text-sm">Add your first health record to get started</p>
+                                </div>
+                              ) : (
+                                getFilteredRecords().map((record) => (
+                                  <Suspense key={record.id} fallback={<div className="animate-pulse h-24 bg-gray-200 rounded-lg"></div>}>
+                                    <HealthRecordCard
+                                      record={record}
+                                      onDelete={handleDeleteRecord}
+                                    />
+                                  </Suspense>
+                                ))
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+
+                        {activeTab === 'analytics' && analytics && (
+                          <div className="space-y-6">
+                            <HealthChart analytics={analytics} healthRecords={healthRecords} />
+
+                            {/* PDF Report Generator */}
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                              <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                Generate Health Report
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Download a comprehensive PDF report of {selectedPet.name}'s health history.
+                              </p>
+                              <PDFReportGenerator
+                                pet={selectedPet}
+                                healthRecords={healthRecords}
+                                vaccinations={vaccinations}
+                                analytics={analytics}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </Suspense>
                     </div>
                   </div>
                 </>
@@ -908,4 +932,4 @@ const AddHealthRecordModal = ({ onClose, onSubmit }) => {
   );
 };
 
-export default PetHealthDashboard;
+export default memo(PetHealthDashboard);

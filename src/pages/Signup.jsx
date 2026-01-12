@@ -112,11 +112,23 @@ const Signup = () => {
   const handleGoogleSignup = async () => {
     setLoading(true);
     try {
-      await loginWithGoogle();
-      toast.success('Account created successfully!');
-      navigate('/');
+      const result = await loginWithGoogle();
+      
+      // loginWithGoogle returns null when popup is closed by user
+      if (result) {
+        toast.success('Account created successfully!');
+        navigate('/');
+      } else {
+        // User closed the popup - no error message needed
+        console.log('Google signup was cancelled by user');
+      }
     } catch (error) {
-      toast.error(error.message || 'Google signup failed. Please try again.');
+      if (error.code === 'auth/popup-closed-by-user') {
+        // User closed the popup - don't show error
+        console.log('Google sign-in popup was closed by user');
+      } else {
+        toast.error(error.message || 'Google signup failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,10 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth } from '../config/firebase-client';
+
+// Check if Firebase is enabled
+const isFirebaseEnabled = import.meta.env.VITE_ENABLE_FIREBASE === 'true';
 import { authAPI, setAuthToken, getToken } from '../services/api';
 
 const AuthContext = createContext({});
@@ -26,8 +29,18 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // If Firebase is not enabled, return children without auth functionality
+  if (!isFirebaseEnabled || !auth) {
+    console.log('Firebase authentication is disabled');
+    return <>{children}</>;
+  }
+
   // Register new user
   const register = async (email, password, displayName, photoURL) => {
+    if (!isFirebaseEnabled || !auth) {
+      throw new Error('Firebase authentication is not enabled');
+    }
+
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -40,23 +53,37 @@ export const AuthProvider = ({ children }) => {
       return result;
     } catch (error) {
       console.error('Registration failed:', error);
+      if (error.code === 'auth/api-key-not-valid') {
+        throw new Error('Firebase Configuration Error: API key is invalid. Please check your Firebase configuration.');
+      }
       throw error;
     }
   };
 
   // Login user
   const login = async (email, password) => {
+    if (!isFirebaseEnabled || !auth) {
+      throw new Error('Firebase authentication is not enabled');
+    }
+
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
       return result;
     } catch (error) {
       console.error('Login failed:', error);
+      if (error.code === 'auth/api-key-not-valid') {
+        throw new Error('Firebase Configuration Error: API key is invalid. Please check your Firebase configuration.');
+      }
       throw error;
     }
   };
 
   // Login with Google
   const loginWithGoogle = async () => {
+    if (!isFirebaseEnabled || !auth) {
+      throw new Error('Firebase authentication is not enabled');
+    }
+
     try {
       const provider = new GoogleAuthProvider();
       provider.addScope('email');
@@ -77,6 +104,11 @@ export const AuthProvider = ({ children }) => {
       if (error.code === 'auth/unauthorized-domain') {
         console.error('Domain not authorized in Firebase Console');
         alert('Google Sign-In Error: This domain is not authorized. Please contact the administrator to add this domain to Firebase authorized domains list.');
+        return null;
+      }
+      if (error.code === 'auth/api-key-not-valid') {
+        console.error('Firebase API key is invalid');
+        alert('Firebase Configuration Error: API key is invalid. Please check your Firebase configuration.');
         return null;
       }
       throw error;

@@ -6,7 +6,7 @@ The `auth/popup-closed-by-user` error occurs when users close the Firebase authe
 
 ## Root Cause
 
-The issue was in the `Login.jsx` component where the `handleGoogleLogin` function didn't properly handle the case when `loginWithGoogle()` returns `null` (indicating the popup was closed by the user).
+The issue was in both the `Login.jsx` and `Signup.jsx` components where the Google authentication functions didn't properly handle the case when `loginWithGoogle()` returns `null` (indicating the popup was closed by the user).
 
 ### Previous Code Issues:
 1. Treated `null` return as successful login
@@ -61,7 +61,55 @@ const handleGoogleLogin = async () => {
 };
 ```
 
-### 2. Enhanced AuthContext.jsx
+### 2. Updated Signup.jsx
+
+Applied the same fix pattern to handle Google sign-up authentication:
+
+**Before:**
+```javascript
+const handleGoogleSignup = async () => {
+  setLoading(true);
+  try {
+    await loginWithGoogle(); // This could return null
+    toast.success('Account created successfully!'); // Always showed success
+    navigate('/'); // Always navigated
+  } catch (error) {
+    toast.error(error.message || 'Google signup failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+**After:**
+```javascript
+const handleGoogleSignup = async () => {
+  setLoading(true);
+  try {
+    const result = await loginWithGoogle();
+    
+    // loginWithGoogle returns null when popup is closed by user
+    if (result) {
+      toast.success('Account created successfully!');
+      navigate('/');
+    } else {
+      // User closed the popup - no error message needed
+      console.log('Google signup was cancelled by user');
+    }
+  } catch (error) {
+    if (error.code === 'auth/popup-closed-by-user') {
+      // User closed the popup - don't show error
+      console.log('Google sign-in popup was closed by user');
+    } else {
+      toast.error(error.message || 'Google signup failed. Please try again.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+```
+
+### 3. Enhanced AuthContext.jsx
 
 Added handling for additional popup-related errors:
 - `auth/popup-closed-by-user`: User closed the popup
